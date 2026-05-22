@@ -107,6 +107,16 @@ const createSidebar = (root: string, prefix = '/') => {
   return prefix === '/' ? sortedSidebar : addPrefix(sortedSidebar, prefix)
 }
 
+// 为已有的 sidebar 映射对象添加前缀（用于把 zh 的路由映射到 /zh/）
+const prefixSidebarMapping = (map: Record<string, any>, prefix: string) => {
+  const out: Record<string, any> = {}
+  for (const key in map) {
+    const newKey = prefix + key.replace(/^\//, '')
+    out[newKey] = addPrefix(map[key], prefix)
+  }
+  return out
+}
+
 const zhNav = [
   {
     text: '基础必学',
@@ -206,6 +216,148 @@ const zhSidebar = {
   '/chapter15/': extensionSidebar,
 }
 
+const rootNav = [
+  {
+    text: 'Fundamentals',
+    link: '/chapter0/',
+    items: [
+      { text: 'Preface', link: '/chapter0/' },
+      { text: 'Tooling', link: '/chapter1/' },
+      { text: 'Tokenizer', link: '/chapter2/' },
+      { text: 'PyTorch & Resource Accounting', link: '/chapter3/' },
+      { text: 'Architecture & Details', link: '/chapter4/' },
+      { text: 'MOE', link: '/chapter5/' },
+      { text: 'GPU Optimization', link: '/chapter6/' },
+      { text: 'Data Engineering', link: '/chapter11/' },
+      { text: 'Training Pipeline', link: '/chapter13/' },
+      { text: 'Evaluation & Benchmarks', link: '/chapter12/' },
+    ],
+  },
+  {
+    text: 'Advanced Electives',
+    link: '/chapter8/',
+    items: [
+      { text: 'Distributed Training', link: '/chapter8/' },
+      { text: 'High-Performance GPU Programming', link: '/chapter7/' },
+      { text: 'Scaling Laws', link: '/chapter9/' },
+      { text: 'Inference', link: '/chapter10/' },
+      { text: 'RLVR', link: '/chapter14/' },
+    ],
+  },
+  {
+    text: 'Extended Chapters',
+    link: '/chapter15/',
+    items: [
+      { text: 'Chapter 15 Extended Content', link: '/chapter15/' },
+    ],
+  },
+]
+
+const rootSidebar = {
+  '/guide/': [
+    {
+      text: 'Getting Started',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/guide/intro' },
+        { text: 'Installation', link: '/guide/install' },
+        { text: 'Quick Start', link: '/guide/quick_start' },
+      ],
+    },
+  ],
+  '/core/': [
+    {
+      text: 'Core',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/core/intro' },
+        { text: 'Feature Columns', link: '/core/features' },
+        { text: 'Data Pipeline', link: '/core/data' },
+        { text: 'Training and Evaluation', link: '/core/evaluation' },
+      ],
+    },
+  ],
+  '/models/': [
+    {
+      text: 'Models',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/models/intro' },
+        { text: 'Ranking Models', link: '/models/ranking' },
+        { text: 'Matching Models', link: '/models/matching' },
+        { text: 'Multi-Task Models', link: '/models/mtl' },
+        { text: 'Generative Models', link: '/models/generative' },
+      ],
+    },
+  ],
+  '/tools/': [
+    {
+      text: 'Tools',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/tools/intro' },
+        { text: 'Visualization', link: '/tools/visualization' },
+        { text: 'Experiment Tracking', link: '/tools/tracking' },
+        { text: 'Callbacks', link: '/tools/callbacks' },
+        { text: 'Benchmark', link: '/tools/benchmark' },
+      ],
+    },
+  ],
+  '/serving/': [
+    {
+      text: 'Serving',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/serving/intro' },
+        { text: 'ONNX and Quantization', link: '/serving/onnx' },
+        { text: 'Vector Indexing', link: '/serving/vector_index' },
+        { text: 'Serving Demo', link: '/serving/demo' },
+      ],
+    },
+  ],
+  '/tutorials/': [
+    {
+      text: 'Tutorials',
+      collapsed: false,
+      items: [
+        { text: 'Overview', link: '/tutorials/intro' },
+        { text: 'CTR Pipeline', link: '/tutorials/ctr' },
+        { text: 'Retrieval System', link: '/tutorials/retrieval' },
+        { text: 'Big Data Pipeline', link: '/tutorials/pipeline' },
+      ],
+    },
+  ],
+  '/api/': [
+    {
+      text: 'API',
+      collapsed: false,
+      items: [{ text: 'Main API', link: '/api/api' }],
+    },
+  ],
+  '/community/': [
+    {
+      text: 'Community',
+      collapsed: false,
+      items: [
+        { text: 'FAQ', link: '/community/faq' },
+        { text: 'Contributing', link: '/community/contributing' },
+        { text: 'Changelog', link: '/community/changelog' },
+      ],
+    },
+  ],
+  '/blog/': [
+    {
+      text: 'Blog',
+      collapsed: false,
+      items: [
+        { text: 'Matching Models Guide', link: '/blog/match' },
+        { text: 'Ranking Models Guide', link: '/blog/rank' },
+        { text: 'HLLM Reproduction', link: '/blog/hllm_reproduction' },
+      ],
+    },
+  ],
+}
+
 // ========== 三、VitePress 配置 ==========
 
 // 注意：如果网站部署在根目录下（例如使用自定义域名 https://your-domain.com/），
@@ -223,8 +375,8 @@ export default withMermaid(defineConfig({
 
   // 路由重写：将 en 目录映射到根路径,作为默认语言内容
   rewrites: {
-    'zh/index.md': 'index.md',            // 中文首页映射到根路径
-    'zh/:dir/:rest*': ':dir/:rest*',      // 中文内容映射到根路径
+    'en/index.md': 'index.md',            // 英文首页映射到根路径
+    'en/:dir/:rest*': ':dir/:rest*',      // 英文内容映射到根路径
   },
 
   // 排除目录
@@ -275,126 +427,109 @@ export default withMermaid(defineConfig({
 
   // ========== 国际化页面配置 ==========
   locales: {
-    // ---------- 中文配置 ----------
-    root: {
-      label: '中文',
-      lang: 'zh-CN',
-      title: SITE_CONFIG.title,
-      description: SITE_CONFIG.description,
-      themeConfig: {
-        nav: zhNav,
-        sidebar: zhSidebar,
-        outlineTitle: '页面导航',
-        lastUpdatedText: '最后更新于',
-        darkModeSwitchLabel: '主题',
-        sidebarMenuLabel: '菜单',
-        returnToTopLabel: '回到顶部',
-        langMenuLabel: '多语言',
-
-        docFooter: {
-          prev: '上一页',
-          next: '下一页'
-        }
-      }
-    },
-
-    // ---------- 英文配置 ----------
-    en: {
-      label: 'English',
-      lang: 'en',
-      title: SITE_CONFIG.title,
-      description: SITE_CONFIG.description,
-      themeConfig: {
-        nav: [
-          { text: 'Home', link: '/en/' },
-          { text: 'Chapters', link: '/en/chapter1/' },
-        ],
-        sidebar: createSidebar('docs/en', '/en/'),
-      }
-    }
-  },
-
-  // ========== 四、默认设置 ==========
-
-  // 1.显示最后更新时间
-  lastUpdated: true,
-
-  // 2. Markdown 增强配置
-  markdown: {
-    math: true,// 开启数学公式 ($$ E=mc^2 $$)
-    lineNumbers: true, // 开启行号
-    languageAlias: {   // 语言别名，消除 gitignore/env 警告
-      'gitignore': 'ini',
-      'env': 'properties'
-    },
-    config: (md) => {// 注册时间线插件
-      md.use(timeline);
-    },
-  },
-
-  // 3. Mermaid 配置
-  mermaid: {// refer to mermaid config options
-  },
-  mermaidPlugin: {
-    class: "mermaid my-class", // set additional css classes for parent container 
-  },
-
-  // 4. Vite 构建配置
-  vite: {
-    // SSR（服务端渲染）配置
-    ssr: {
-      noExternal: ['vitepress-plugin-mermaid', 'mermaid'],// 将这些包打包到输出中，解决 Mermaid 图表在 SSR 时的兼容性问题
-    },
-    // 优化mermaid配置
-    optimizeDeps: {
-      include: ['mermaid'],// 提前预构建 mermaid，提升开发环境性能
-    },
-    // 开发服务器配置
-    server: {
-      host: '0.0.0.0',      // 监听所有网络接口（可从局域网访问）
-      port: 5173,           // 默认端口
-      strictPort: false,    // 端口被占用时自动尝试下一个端口
-      allowedHosts: true    // 允许所有主机访问（跳过 host 检查）
-    }
-  },
-
-  // ========== 五、SEO 优化配置 ==========
-
-  // 基础 head 标签（全局生效）
-  head: [
-    ['meta', { name: 'keywords', content: SITE_CONFIG.keywords }],
-    ['meta', { name: 'author', content: SITE_CONFIG.author }],
-    ['meta', { property: 'og:type', content: 'website' }],
-    // 注意：head 中的资源路径不会自动添加 base，需要手动处理
-    ['link', { rel: 'icon', href: base + SITE_CONFIG.favicon.href.replace(/^\//, ''), type: SITE_CONFIG.favicon.type }],
-  ],
-
-  // Sitemap 自动生成（需配置 SITE_CONFIG.url）
-  ...(SITE_CONFIG.url ? { sitemap: { hostname: SITE_CONFIG.url } } : {}),
-
-  // 动态生成每个页面的 SEO meta 标签（标题、描述、URL、社交分享图）
-  transformHead: ({ pageData }) => {
-    if (!SITE_CONFIG.url) return []
-
-    const pageUrl = `${SITE_CONFIG.url}${getPageUrl(pageData.relativePath)}`
-    const title = pageData.frontmatter.title || pageData.title
-    const description = pageData.frontmatter.description || pageData.description
-    const image = `${SITE_CONFIG.url}${base}${SITE_CONFIG.logo.replace(/^\//, '')}`
-
-    return [
-      // 规范链接（避免重复内容）
-      ['link', { rel: 'canonical', href: pageUrl }],
-      // Open Graph（Facebook、微信等）
-      ['meta', { property: 'og:url', content: pageUrl }],
-      ['meta', { property: 'og:title', content: title }],
-      ['meta', { property: 'og:description', content: description }],
-      ['meta', { property: 'og:image', content: image }],
-      // Twitter Card
-      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-      ['meta', { name: 'twitter:title', content: title }],
-      ['meta', { name: 'twitter:description', content: description }],
-      ['meta', { name: 'twitter:image', content: image }],
-    ] as HeadConfig[]
+    const zhSidebar = prefixSidebarMapping({
+      '/guide/': [
+        {
+          text: '快速开始',
+          items: [
+            { text: '概览', link: '/guide/intro' },
+            { text: '安装指南', link: '/guide/install' },
+            { text: '快速上手', link: '/guide/quick_start' },
+          ],
+        },
+      ],
+      '/core/': [
+        {
+          text: '核心组件',
+          items: [
+            { text: '概览', link: '/core/intro' },
+            { text: '特征定义', link: '/core/features' },
+            { text: '数据流水线', link: '/core/data' },
+            { text: '训练与评估', link: '/core/evaluation' },
+          ],
+        },
+      ],
+      '/models/': [
+        {
+          text: '模型库',
+          items: [
+            { text: '概览', link: '/models/intro' },
+            { text: '排序模型', link: '/models/ranking' },
+            { text: '召回模型', link: '/models/matching' },
+            { text: '多任务模型', link: '/models/mtl' },
+            { text: '生成式模型', link: '/models/generative' },
+          ],
+        },
+      ],
+      '/tools/': [
+        {
+          text: '工具',
+          items: [
+            { text: '概览', link: '/tools/intro' },
+            { text: '可视化', link: '/tools/visualization' },
+            { text: '实验追踪', link: '/tools/tracking' },
+            { text: '回调函数', link: '/tools/callbacks' },
+            { text: 'Benchmark', link: '/tools/benchmark' },
+          ],
+        },
+      ],
+      '/serving/': [
+        {
+          text: '部署',
+          items: [
+            { text: '概览', link: '/serving/intro' },
+            { text: 'ONNX 与量化', link: '/serving/onnx' },
+            { text: '向量索引', link: '/serving/vector_index' },
+            { text: '部署示例', link: '/serving/demo' },
+          ],
+        },
+      ],
+      '/tutorials/': [
+        {
+          text: '教程',
+          items: [
+            { text: '概览', link: '/tutorials/intro' },
+            { text: 'CTR 流程', link: '/tutorials/ctr' },
+            { text: '召回系统', link: '/tutorials/retrieval' },
+            { text: '大数据流水线', link: '/tutorials/pipeline' },
+          ],
+        },
+      ],
+      '/api/': [
+        {
+          text: 'API',
+          items: [{ text: 'API 参考', link: '/api/api' }],
+        },
+      ],
+      '/community/': [
+        {
+          text: '社区',
+          items: [
+            { text: '常见问题', link: '/community/faq' },
+            { text: '贡献指南', link: '/community/contributing' },
+            { text: '版本日志', link: '/community/changelog' },
+          ],
+        },
+      ],
+      '/blog/': [
+        {
+          text: '博客',
+          items: [
+            { text: '召回模型训练指南', link: '/blog/match' },
+            { text: '排序模型训练指南', link: '/blog/rank' },
+            { text: 'HLLM 复现说明', link: '/blog/hllm_reproduction' },
+            { text: 'HSTU 复现说明', link: '/blog/hstu_reproduction' },
+          ],
+        },
+      ],
+    }, '/zh/')
+    ['meta', { property: 'og:image', content: image }],
+    // Twitter Card
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:title', content: title }],
+    ['meta', { name: 'twitter:description', content: description }],
+    ['meta', { name: 'twitter:image', content: image }],
+    ]as HeadConfig[]
   },
 
   // 构建完成后自动生成 robots.txt
