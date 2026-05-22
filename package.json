@@ -19,6 +19,8 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
+    "katex": "^0.16.47",
+    "markdown-it-katex": "^2.0.3",
     "vitepress": "2.0.0-alpha.15"
   }
 }

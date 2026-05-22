@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import markdownItKatex from 'markdown-it-katex'
 
 const isRootDeploy =
   process.env.VERCEL === '1' ||
@@ -47,6 +48,20 @@ export default defineConfig({
   cleanUrls: true,
   ignoreDeadLinks: true,
   lastUpdated: true,
+  markdown: {
+    config(md) {
+      md.use(markdownItKatex)
+    }
+  },
+  head: [
+    [
+      'link',
+      {
+        rel: 'stylesheet',
+        href: 'https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.css'
+      }
+    ]
+  ],
   themeConfig: {
     logo: '/images/diy-llm.png',
     siteTitle: 'Diy-LLM',
