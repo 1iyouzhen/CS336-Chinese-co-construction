@@ -10,7 +10,7 @@ const SITE_CONFIG = {
   // 站点标题配置
   title: "Diy-LLM",  // 浏览器标签页标题、SEO 标题
   siteTitle: "Diy-LLM",  // 左上角导航栏标题（非SEO）
-  description: "系统学习大语言模型的中文开源教程",
+  description: "一座为中文学习者量身打造的'LLM炼丹工坊'",
 
   // SEO 配置
   url: 'https://datawhalechina.github.io/diy-llm/',  // 网站域名，示例: 'https://yourdomain.com'（留空则不生成 sitemap）
@@ -19,10 +19,10 @@ const SITE_CONFIG = {
 
   // 资源配置
   favicon: {
-    href: '/favicon/diy-llm.png',// 网站图标
+    href: '/favicon/datawhale.png',// 网站图标
     type: 'image/png'  // 支持: image/png, image/svg+xml, image/x-icon 等(tips:手动修改匹配)
   },
-  logo: '/favicon/diy-llm.png',// 左上角图标
+  logo: '/favicon/datawhale.png',// 左上角图标
 
   // robots.txt 排除目录（根据项目实际情况调整）
   robotsDisallow: [
@@ -72,10 +72,138 @@ const addPrefix = (items: any, prefix: string): any => {
   return items
 }
 
+const getSidebarOrder = (item: any): number => {
+  const text = String(item?.text ?? '')
+  const chapterMatch = text.match(/^第\s*(\d+)\s*章/)
+  if (chapterMatch) {
+    return Number(chapterMatch[1])
+  }
+
+  const linkMatch = String(item?.link ?? '').match(/chapter(\d+)/)
+  if (linkMatch) {
+    return Number(linkMatch[1])
+  }
+
+  return Number.POSITIVE_INFINITY
+}
+
+const sortSidebarItems = (items: any): any => {
+  if (!Array.isArray(items)) {
+    return items
+  }
+
+  return [...items]
+    .sort((left, right) => getSidebarOrder(left) - getSidebarOrder(right))
+    .map(item => ({
+      ...item,
+      items: item.items ? sortSidebarItems(item.items) : undefined,
+    }))
+}
+
 // 生成侧边栏（支持国际化前缀）
 const createSidebar = (root: string, prefix = '/') => {
   const sidebar = generateSidebar({ documentRootPath: root, ...commonSidebarConfig })
-  return prefix === '/' ? sidebar : addPrefix(sidebar, prefix)
+  const sortedSidebar = sortSidebarItems(sidebar)
+  return prefix === '/' ? sortedSidebar : addPrefix(sortedSidebar, prefix)
+}
+
+const zhNav = [
+  {
+    text: '基础必学',
+    link: '/chapter0/',
+    items: [
+      { text: '前言', link: '/chapter0/' },
+      { text: '工具使用', link: '/chapter1/' },
+      { text: '分词器', link: '/chapter2/' },
+      { text: 'PyTorch与资源核算', link: '/chapter3/' },
+      { text: '架构与细节', link: '/chapter4/' },
+      { text: 'MOE', link: '/chapter5/' },
+      { text: 'GPU优化', link: '/chapter6/' },
+      { text: '数据工程', link: '/chapter11/' },
+      { text: '训练流程', link: '/chapter13/' },
+      { text: '评估与基准测试', link: '/chapter12/' },
+    ],
+  },
+  {
+    text: '进阶选修',
+    link: '/chapter8/',
+    items: [
+      { text: '分布式训练', link: '/chapter8/' },
+      { text: 'GPU高性能编程', link: '/chapter7/' },
+      { text: 'Scaling Laws', link: '/chapter9/' },
+      { text: '推理', link: '/chapter10/' },
+      { text: 'RLVR', link: '/chapter14/' },
+    ],
+  },
+  {
+    text: '扩展章节',
+    link: '/chapter15/',
+    items: [
+      { text: '第15章 扩展内容', link: '/chapter15/' },
+    ],
+  },
+]
+
+const fundamentalSidebar = [
+  {
+    text: '基础必学',
+    collapsed: false,
+    items: [
+      { text: '前言', link: '/chapter0/' },
+      { text: '第1章 工具使用', link: '/chapter1/' },
+      { text: '第2章 分词器', link: '/chapter2/' },
+      { text: '第3章 PyTorch 与资源核算', link: '/chapter3/' },
+      { text: '第4章 语言模型架构与训练细节', link: '/chapter4/' },
+      { text: '第5章 MOE', link: '/chapter5/' },
+      { text: '第6章 GPU优化', link: '/chapter6/' },
+      { text: '第11章 数据工程', link: '/chapter11/' },
+      { text: '第13章 训练流程', link: '/chapter13/' },
+      { text: '第12章 评估与基准测试', link: '/chapter12/' },
+    ],
+  },
+]
+
+const advancedSidebar = [
+  {
+    text: '进阶选修',
+    collapsed: false,
+    items: [
+      { text: '第8章 分布式训练', link: '/chapter8/' },
+      { text: '第7章 GPU高性能编程', link: '/chapter7/' },
+      { text: '第9章 Scaling Laws', link: '/chapter9/' },
+      { text: '第10章 推理', link: '/chapter10/' },
+      { text: '第14章 RLVR', link: '/chapter14/' },
+    ],
+  },
+]
+
+const extensionSidebar = [
+  {
+    text: '扩展章节',
+    collapsed: false,
+    items: [
+      { text: '第15章 扩展内容', link: '/chapter15/' },
+    ],
+  },
+]
+
+const zhSidebar = {
+  '/chapter0/': fundamentalSidebar,
+  '/chapter1/': fundamentalSidebar,
+  '/chapter2/': fundamentalSidebar,
+  '/chapter3/': fundamentalSidebar,
+  '/chapter4/': fundamentalSidebar,
+  '/chapter5/': fundamentalSidebar,
+  '/chapter6/': fundamentalSidebar,
+  '/chapter11/': fundamentalSidebar,
+  '/chapter12/': fundamentalSidebar,
+  '/chapter13/': fundamentalSidebar,
+  '/chapter7/': advancedSidebar,
+  '/chapter8/': advancedSidebar,
+  '/chapter9/': advancedSidebar,
+  '/chapter10/': advancedSidebar,
+  '/chapter14/': advancedSidebar,
+  '/chapter15/': extensionSidebar,
 }
 
 // ========== 三、VitePress 配置 ==========
@@ -154,11 +282,8 @@ export default withMermaid(defineConfig({
       title: SITE_CONFIG.title,
       description: SITE_CONFIG.description,
       themeConfig: {
-        nav: [
-          { text: '主页', link: '/' },
-          { text: '章节目录', link: '/chapter1/wandb使用介绍/' },
-        ],
-        sidebar: createSidebar('docs/zh', '/'),// '/'决定“链接挂到哪里”（这些文档对应的网站路径以哪个前缀开头）
+        nav: zhNav,
+        sidebar: zhSidebar,
         outlineTitle: '页面导航',
         lastUpdatedText: '最后更新于',
         darkModeSwitchLabel: '主题',
@@ -182,7 +307,7 @@ export default withMermaid(defineConfig({
       themeConfig: {
         nav: [
           { text: 'Home', link: '/en/' },
-          { text: 'Chapters', link: '/en/chapter1/wandb使用介绍/' },
+          { text: 'Chapters', link: '/en/chapter1/' },
         ],
         sidebar: createSidebar('docs/en', '/en/'),
       }

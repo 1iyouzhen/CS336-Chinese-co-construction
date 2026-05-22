@@ -13,10 +13,10 @@ hero:
   actions:
     - theme: brand
       text: 开始阅读
-      link: /chapter1/wandb使用介绍/
+      link: /chapter0/
     - theme: alt
       text: 查看章节
-      link: /chapter2/chapter2_分词器/
+      link: /chapter0/
     - theme: alt
       text: GitHub
       link: https://github.com/datawhalechina/diy-llm
@@ -53,16 +53,22 @@ pnpm run dev
 
 主要章节包括：
 
-- [第1章 工具使用（W&B）](/chapter1/wandb使用介绍/)
-- [第2章 分词器](/chapter2/chapter2_分词器/)
-- [第3章 PyTorch 与资源核算](/chapter3/chapter3_pytorch与资源核算/)
-- [第4章 语言模型架构与训练细节](/chapter4/chapter4_第四章语言模型架构和训练的技术细节/)
-- [第5章 混合专家模型](/chapter5/chapter5_混合专家模型/)
-- [第6章 GPU 与相关优化](/chapter6/chapter6_第六章GPU和GPU相关的优化/)
-- [第7章 GPU 高性能编程](/chapter7/chapter7_第七章GPU高性能编程/)
-- [第8章 分布式训练](/chapter8/chapter8_第八章分布式训练/)
-- [第9章 Scaling Laws](/chapter9/chapter9_Scaling_Laws/)
-- [第10章 推理](/chapter10/推理/)
+- [前言](/chapter0/)
+- [第1章 工具使用](/chapter1/)
+- [第2章 分词器](/chapter2/)
+- [第3章 PyTorch 与资源核算](/chapter3/)
+- [第4章 语言模型架构与训练细节](/chapter4/)
+- [第5章 混合专家模型](/chapter5/)
+- [第6章 GPU 与相关优化](/chapter6/)
+- [第7章 GPU 高性能編程](/chapter7/)
+- [第8章 分布式训练](/chapter8/)
+- [第9章 ScalingLaws](/chapter9/)
+- [第10章 推理](/chapter10/)
+- [第11章 数据工程](/chapter11/)
+- [第12章 评估与基准测试](/chapter12/)
+- [第13章 大模型的基本训练流程](/chapter13/)
+- [第14章 可验证奖励的强化学习](/chapter14/)
+- [第15章 扩展内容](/chapter15/)
 
 
 ## 作业与实践

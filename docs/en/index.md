@@ -13,10 +13,10 @@ hero:
   actions:
     - theme: brand
       text: 开始阅读
-      link: /en/chapter1/wandb使用介绍/
+      link: /en/chapter1/
     - theme: alt
       text: 查看章节
-      link: /en/chapter2/chapter2_分词器/
+      link: /en/chapter2/
     - theme: alt
       text: GitHub
       link: https://github.com/datawhalechina/diy-llm
