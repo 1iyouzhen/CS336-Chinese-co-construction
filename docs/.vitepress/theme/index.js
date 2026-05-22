@@ -3,11 +3,15 @@ import { nextTick, onMounted, watch } from 'vue'
 import { useRoute } from 'vitepress'
 import mediumZoom from 'medium-zoom'
 import Layout from './Layout.vue'
+import HomeLanding from './components/HomeLanding.vue'
 import './custom.css'
 
 export default {
   extends: DefaultTheme,
   Layout,
+  enhanceApp({ app }) {
+    app.component('HomeLanding', HomeLanding)
+  },
   setup() {
     const route = useRoute()
 
