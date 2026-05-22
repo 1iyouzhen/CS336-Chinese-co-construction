@@ -1,87 +1,69 @@
 ---
 layout: home
-sidebar: false
-outline: false
 
 hero:
-  name: Diy-LLM
-  text: 系统学习大语言模型的中文开源教程
-  tagline: 从分词器、模型架构、GPU 优化到后训练与评测，沿着真实代码和作业逐步拆解 LLM 工程。
+  name: "Diy-LLM"
+  text: "系统学习大语言模型"
+  tagline: "从工具、分词器、模型架构到训练、评估、推理与强化学习，按章节搭建完整的 LLM 学习路径。"
   image:
-    src: /public/favicon/diy-llm.png
+    src: /diy-llm.png
     alt: Diy-LLM
   actions:
     - theme: brand
-      text: 开始阅读
-      link: /chapter0/
+      text: 开始学习
+      link: /zh/chapter1/wandb使用介绍
     - theme: alt
-      text: 查看章节
-      link: /chapter0/
+      text: 分词器
+      link: /zh/chapter2/chapter2_分词器
     - theme: alt
-      text: GitHub
-      link: https://github.com/datawhalechina/diy-llm
+      text: 训练流程
+      link: /zh/chapter13/chapter13_第十三章大模型的基本训练流程
+
+features:
+  - icon: 01
+    title: 基础必学
+    details: 前言、工具使用、分词器、PyTorch 与资源核算、架构细节、MOE、GPU 优化、数据工程、训练流程和评估基准。
+    link: /zh/chapter1/wandb使用介绍
+    linkText: 进入基础章节
+
+  - icon: 02
+    title: 进阶选修
+    details: 分布式训练、GPU 高性能编程、Scaling Laws、推理、RLVR 和扩展内容，帮助进一步理解工程与研究边界。
+    link: /zh/chapter8/chapter8_第八章分布式训练
+    linkText: 进入进阶章节
+
+  - icon: 15
+    title: 扩展章节
+    details: 第15章聚焦 LLM 推理相关主题，可作为完成主线学习后的专题补充。
+    link: /zh/chapter15/什么是LLM推理
+    linkText: 阅读第15章
 ---
 
-<HomeLanding />
+<div class="home-badges">
+  <span>工具使用</span>
+  <span>分词器</span>
+  <span>PyTorch</span>
+  <span>Transformer</span>
+  <span>MOE</span>
+  <span>GPU优化</span>
+  <span>数据工程</span>
+  <span>训练流程</span>
+  <span>评估</span>
+  <span>推理</span>
+  <span>RLVR</span>
+</div>
 
-
-## 关于 Diy-LLM
-
-Diy-LLM 是为中文学习者量身打造的「大语言模型（LLM）系统学习」教程与实践项目。我们结合理论与工程实践，拆解 LLM 的核心模块并配套作业，目标是让学习者能够从数据处理、分词器、模型训练到评测与部署，逐步掌握构建大模型的完整能力。
-
-### 我们的愿景
-
-- 硬核理论与动手实战并重，带来可复现的工程实现。
-- 构建循序渐进的知识体系，覆盖分词器、架构、训练、评测与部署。
-- 贴近国内生态，结合国产模型与实战案例。
-
-
-## 快速开始
-
-克隆仓库并查看文档：
-
-```bash
-git clone https://github.com/datawhalechina/diy-llm.git
-cd diy-llm
-# 本地预览（需 node 环境和 pnpm）
-pnpm install
-pnpm run dev
-```
-
-
-## 课程目录（摘要）
-
-主要章节包括：
-
-- [前言](/chapter0/)
-- [第1章 工具使用](/chapter1/)
-- [第2章 分词器](/chapter2/)
-- [第3章 PyTorch 与资源核算](/chapter3/)
-- [第4章 语言模型架构与训练细节](/chapter4/)
-- [第5章 混合专家模型](/chapter5/)
-- [第6章 GPU 与相关优化](/chapter6/)
-- [第7章 GPU 高性能編程](/chapter7/)
-- [第8章 分布式训练](/chapter8/)
-- [第9章 ScalingLaws](/chapter9/)
-- [第10章 推理](/chapter10/)
-- [第11章 数据工程](/chapter11/)
-- [第12章 评估与基准测试](/chapter12/)
-- [第13章 大模型的基本训练流程](/chapter13/)
-- [第14章 可验证奖励的强化学习](/chapter14/)
-- [第15章 扩展内容](/chapter15/)
-
-
-## 作业与实践
-
-本项目提供配套作业，覆盖 tokenizer、模型训练、系统优化、数据处理与评测等核心工程任务。详情见 `coursework/` 目录。
-
-
-## 贡献与参与
-
-欢迎提交 Issue、PR，或直接在仓库中参与章节与作业的完善。常见贡献流程：Fork → 新分支 → 提交 PR。
-
-
-## 致谢
-
-感谢 Stanford CS336 的原始课程和所有为本项目贡献内容的同学与组织。
-
+<div class="home-quick-grid">
+  <a class="home-quick-card" href="./chapter1/wandb使用介绍">
+    <strong>先建立学习和实验工具链</strong>
+    <span>从 W&B 等工具开始，理解课程中的实验记录、训练观察和结果追踪方式。</span>
+  </a>
+  <a class="home-quick-card" href="./chapter4/chapter4_第四章语言模型架构和训练的技术细节">
+    <strong>抓住模型结构主线</strong>
+    <span>围绕 Transformer、训练细节、MOE 和 GPU 优化建立大语言模型的核心工程认知。</span>
+  </a>
+  <a class="home-quick-card" href="./chapter13/chapter13_第十三章大模型的基本训练流程">
+    <strong>串起完整训练流程</strong>
+    <span>把数据工程、训练阶段、评估基准和后续 RLVR 内容组织成可执行的学习路径。</span>
+  </a>
+</div>
