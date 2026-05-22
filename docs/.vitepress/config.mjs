@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitepress'
-import markdownItKatex from 'markdown-it-katex'
+import { katex } from '@mdit/plugin-katex'
 
 const isRootDeploy =
   process.env.VERCEL === '1' ||
@@ -50,7 +50,7 @@ export default defineConfig({
   lastUpdated: true,
   markdown: {
     config(md) {
-      md.use(markdownItKatex)
+      md.use(katex)
     }
   },
   head: [
