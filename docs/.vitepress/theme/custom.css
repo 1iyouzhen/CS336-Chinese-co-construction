@@ -1,12 +1,80 @@
 :root {
-  --vp-c-brand-1: #2f8f6b;
-  --vp-c-brand-2: #36a77c;
+  --vp-c-brand-1: #267356;
+  --vp-c-brand-2: #2f8f6b;
   --vp-c-brand-3: #42b883;
-  --vp-home-hero-name-color: #2f8f6b;
+  --vp-c-brand-soft: rgba(66, 184, 131, 0.14);
+  --vp-home-hero-name-color: #267356;
+  --diy-doc-font-size: 15px;
+  --diy-doc-line-height: 1.72;
+  --diy-surface-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
 }
 
-.VPDoc .content img {
-  border-radius: 6px;
+.dark {
+  --diy-surface-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+}
+
+.VPNav {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.VPNavBar {
+  border-bottom: 1px solid color-mix(in srgb, var(--vp-c-divider), transparent 30%);
+}
+
+.VPSidebar {
+  background:
+    linear-gradient(180deg, rgba(66, 184, 131, 0.06), transparent 220px),
+    var(--vp-c-bg);
+}
+
+.VPSidebarItem.level-1 .item {
+  min-height: 28px;
+}
+
+.VPDoc.has-sidebar .container {
+  max-width: 100% !important;
+}
+
+.VPDoc.has-sidebar .content-container {
+  max-width: 900px !important;
+}
+
+.vp-doc {
+  font-size: var(--diy-doc-font-size);
+  line-height: var(--diy-doc-line-height);
+}
+
+.vp-doc p,
+.vp-doc li {
+  line-height: var(--diy-doc-line-height);
+}
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  line-height: 1.28;
+  letter-spacing: 0;
+}
+
+.vp-doc h2 {
+  margin-top: 40px;
+  border-top: 0;
+}
+
+.vp-doc a {
+  text-decoration: none;
+}
+
+.vp-doc a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.VPDoc .content img,
+.vp-doc img {
+  border-radius: 10px;
+  box-shadow: var(--diy-surface-shadow);
 }
 
 .VPDoc table {
@@ -14,8 +82,118 @@
   width: 100%;
 }
 
-.vp-doc h1,
-.vp-doc h2,
-.vp-doc h3 {
-  line-height: 1.35;
+.vp-doc table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.vp-doc th {
+  background: var(--vp-c-bg-soft);
+}
+
+.vp-doc blockquote {
+  border-left: 4px solid var(--vp-c-brand-2);
+  border-radius: 0 8px 8px 0;
+  background: var(--vp-c-bg-soft);
+  padding: 12px 16px;
+}
+
+.reading-progress-button {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 40;
+  width: 56px;
+  height: 56px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--vp-c-bg), transparent 8%);
+  color: var(--vp-c-brand-1);
+  box-shadow: var(--diy-surface-shadow);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.reading-progress-button:hover {
+  transform: translateY(-2px);
+  border-color: var(--vp-c-brand-2);
+}
+
+.reading-progress-button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.reading-progress-button:focus-visible {
+  outline: 2px solid var(--vp-c-brand-2);
+  outline-offset: 3px;
+}
+
+.reading-progress-ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.reading-progress-bg {
+  fill: transparent;
+  stroke: var(--vp-c-divider);
+  stroke-width: 3;
+}
+
+.reading-progress-value {
+  fill: transparent;
+  stroke: currentColor;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.reading-progress-text,
+.reading-progress-icon {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reading-progress-enter-active,
+.reading-progress-leave-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.reading-progress-enter-from,
+.reading-progress-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+}
+
+@media (max-width: 768px) {
+  .reading-progress-button {
+    right: 18px;
+    bottom: 18px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .VPDoc.has-sidebar .content-container {
+    max-width: 100% !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-progress-button,
+  .reading-progress-value,
+  .reading-progress-enter-active,
+  .reading-progress-leave-active {
+    transition: none !important;
+  }
 }
