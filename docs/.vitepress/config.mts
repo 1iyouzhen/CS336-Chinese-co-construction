@@ -4,7 +4,7 @@ const rootNav = [
   {
     text: 'Essentials',
     items: [
-      { text: 'Preface', link: '/' },
+      { text: 'Preface', link: '/前言' },
       { text: 'Tooling', link: '/chapter1/wandb使用介绍' },
       { text: 'Tokenizer', link: '/chapter2/chapter2_分词器' },
       { text: 'PyTorch and Resource Accounting', link: '/chapter3/chapter3_pytorch与资源核算' },
@@ -38,7 +38,7 @@ const rootSidebar = {
     {
       text: 'Chapters',
       items: [
-        { text: 'Preface', link: '/' },
+        { text: 'Preface', link: '/前言' },
         { text: 'Chapter 1 Tooling', link: '/chapter1/wandb使用介绍' },
         { text: 'Chapter 2 Tokenizer', link: '/chapter2/chapter2_分词器' },
         { text: 'Chapter 3 PyTorch and Resource Accounting', link: '/chapter3/chapter3_pytorch与资源核算' },
@@ -63,7 +63,7 @@ const zhNav = [
   {
     text: '基础必学',
     items: [
-      { text: '前言', link: '/zh/' },
+      { text: '前言', link: '/zh/前言' },
       { text: '工具使用', link: '/zh/chapter1/wandb使用介绍' },
       { text: '分词器', link: '/zh/chapter2/chapter2_分词器' },
       { text: 'PyTorch与资源核算', link: '/zh/chapter3/chapter3_pytorch与资源核算' },
@@ -97,7 +97,7 @@ const zhSidebar = {
     {
       text: '章节',
       items: [
-        { text: '前言', link: '/zh/' },
+        { text: '前言', link: '/zh/前言' },
         { text: '第1章 工具使用', link: '/zh/chapter1/wandb使用介绍' },
         { text: '第2章 分词器', link: '/zh/chapter2/chapter2_分词器' },
         { text: '第3章 PyTorch 与资源核算', link: '/zh/chapter3/chapter3_pytorch与资源核算' },
