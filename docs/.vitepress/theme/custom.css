@@ -1,0 +1,21 @@
+:root {
+  --vp-c-brand-1: #2f8f6b;
+  --vp-c-brand-2: #36a77c;
+  --vp-c-brand-3: #42b883;
+  --vp-home-hero-name-color: #2f8f6b;
+}
+
+.VPDoc .content img {
+  border-radius: 6px;
+}
+
+.VPDoc table {
+  display: table;
+  width: 100%;
+}
+
+.vp-doc h1,
+.vp-doc h2,
+.vp-doc h3 {
+  line-height: 1.35;
+}
