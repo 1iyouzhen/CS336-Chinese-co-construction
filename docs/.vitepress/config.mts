@@ -19,14 +19,16 @@ const enNav = [
   {
     text: 'Advanced',
     items: [
-      { text: 'Distributed Training', link: '/en/chapter8/chapter8_第八章分布式训练' },
-      { text: 'GPU High Performance Programming', link: '/en/chapter7/chapter7_第七章GPU高性能编程' },
-      { text: 'Scaling Laws', link: '/en/chapter9/chapter9_Scaling_Laws' },
-      { text: 'Inference', link: '/en/chapter10/推理' },
-      { text: 'RLVR', link: '/en/chapter14/chapter14_可验证奖励的强化学习' },
-      { text: 'Extended Content', link: '/en/chapter15/什么是LLM推理' },
-      { text: 'LLM Future - LeCun', link: '/en/chapter15/LLM的未来LeCun' },
+      { text: 'Distributed Training', link: '/chapter8/chapter8_第八章分布式训练' },
+      { text: 'GPU High Performance Programming', link: '/chapter7/chapter7_第七章GPU高性能编程' },
+      { text: 'Scaling Laws', link: '/chapter9/chapter9_Scaling_Laws' },
+      { text: 'Inference', link: '/chapter10/推理' },
+      { text: 'RLVR', link: '/chapter14/chapter14_可验证奖励的强化学习' },
     ],
+  },
+  {
+    text: 'Extra Chapters',
+    items: [{ text: 'Chapter 15', link: '/chapter15/什么是LLM推理' },{ text: 'Chapter 15', link: '/chapter15/LLM的未来LeCun' }]
   },
 ]
 
@@ -76,14 +78,17 @@ const zhNav = [
   {
     text: '进阶选修',
     items: [
-      { text: '分布式训练', link: '/chapter8/chapter8_第八章分布式训练' },
-      { text: 'GPU高性能编程', link: '/chapter7/chapter7_第七章GPU高性能编程' },
-      { text: 'Scaling Laws', link: '/chapter9/chapter9_Scaling_Laws' },
-      { text: '推理', link: '/chapter10/推理' },
-      { text: 'RLVR', link: '/chapter14/chapter14_可验证奖励的强化学习' },
-      { text: '什么是LLM推理', link: '/chapter15/什么是LLM推理' },
-      { text: 'LLM的未来 - LeCun', link: '/chapter15/LLM的未来LeCun' },
+      { text: '分布式训练', link: '/zh/chapter8/chapter8_第八章分布式训练' },
+      { text: 'GPU高性能编程', link: '/zh/chapter7/chapter7_第七章GPU高性能编程' },
+      { text: 'Scaling Laws', link: '/zh/chapter9/chapter9_Scaling_Laws' },
+      { text: '推理', link: '/zh/chapter10/推理' },
+      { text: 'RLVR', link: '/zh/chapter14/chapter14_可验证奖励的强化学习' },
+      { text: '扩展内容', link: '/zh/chapter15/什么是LLM推理' },
     ],
+  },
+  {
+    text: '扩展章节',
+    items: [{ text: '第15章', link: '/zh/chapter15/什么是LLM推理' },{ text: '第15章', link: '/zh/chapter15/LLM的未来LeCun' }],
   },
 ]
 
@@ -107,8 +112,10 @@ const zhSidebar = {
         { text: '第12章 评估与基准测试', link: '/chapter12/chapter12_评估与基准测试' },
         { text: '第13章 大模型的基本训练流程', link: '/chapter13/chapter13_第十三章大模型的基本训练流程' },
         { text: '第14章 可验证奖励的强化学习', link: '/chapter14/chapter14_可验证奖励的强化学习' },
-        { text: '第15章 什么是LLM推理', link: '/chapter15/什么是LLM推理' },
-        { text: '第15章 LLM的未来 - LeCun', link: '/chapter15/LLM的未来LeCun' },
+        { text: '第15章 扩展内容', items: [
+          { text: '1. 什么是LLM推理？（黎又榛）', link: '/chapter15/什么是LLM推理' },
+          { text: '2. LLM 的未来 - Lecun', link: '/chapter15/LLM的未来LeCun' },
+        ]},
       ],
     },
   ],
