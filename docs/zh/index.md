@@ -1,24 +1,20 @@
----
-layout: home
+<div align='center'>
+    <img src="./images/diy-llm.png" alt="alt text" width="100%">
+    <h1>Diy-LLM</h1>
+</div>
 
-hero:
-  name: "Diy-LLM"
-  text: "带你系统性学习大语言模型"
-  tagline: "一座为中文学习者量身打造的“LLM炼丹工坊”"
-  image:
-    src: /diy-llm.png
-    alt: Diy-LLM
-  actions:
-    - theme: brand
-      text: 开始阅读
-      link: /zh/前言
-    - theme: alt
-      text: 查看课程目录
-      link: /zh/#course-catalog
-    - theme: alt
-      text: GitHub 项目
-      link: https://github.com/datawhalechina/diy-llm
----
+<div align="center">
+  <img src="https://img.shields.io/github/stars/datawhalechina/diy-llm?style=flat&logo=github" alt="GitHub stars"/>
+  <img src="https://img.shields.io/github/forks/datawhalechina/diy-llm?style=flat&logo=github" alt="GitHub forks"/>
+  <img src="https://img.shields.io/badge/language-Chinese-brightgreen?style=flat" alt="Language"/>
+  <a href="https://github.com/datawhalechina/diy-llm"><img src="https://img.shields.io/badge/GitHub-Project-blue?style=flat&logo=github" alt="GitHub Project"></a>
+</div>
+
+<div align="center">
+  <p><a href="https://datawhalechina.github.io/diy-llm/">📚 在线阅读地址</a></p>
+  <h3>📚 带你系统性学习大语言模型</h3>
+  <p><em>一座为中文学习者量身打造的"LLM炼丹工坊"</em></p>
+</div>
 
 我们希望这门 CS336 中文课程，不只是斯坦福原版的"汉化版"，而是一座为中文学习者量身打造的"LLM炼丹工坊"。在这里，你亲手锻造理解、打磨代码、调控火候，最终炼出属于自己的大模型真丹。
 
@@ -46,41 +42,41 @@ hero:
 - **突出的行业竞争力**：具备大模型研发的核心能力，为你进入心仪的大厂或团队铺平道路。
 - **清晰的科研视野**：对LLM领域有体系化的认知，为未来深入研究打下坚实的基础。
 
-<span id="course-catalog"></span>
-
 ## 📖 课程目录
 
-| 章节                                                                                   | 关键内容                   | 配套作业                                                                                        | 状态 |
-| -------------------------------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------- | ---- |
-| [前言](./前言)                                                                         | 项目由来、背景及学习建议   | -                                                                                               | ✅    |
-| [第1章 工具使用](./chapter1/wandb使用介绍)                                             | W&B 使用与实验追踪         | -                                                                                               | 📝    |
-| [第2章 分词器](./chapter2/chapter2_分词器)                                             | 分词器原理与 BPE 实现      | [作业1](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment1-basics/)     | ✅    |
-| [第3章 PyTorch 与资源核算](./chapter3/chapter3_pytorch与资源核算)                      | 训练原语、算力/显存估算    | -                                                                                               | ✅    |
-| [第4章 语言模型架构与训练细节](./chapter4/chapter4_第四章语言模型架构和训练的技术细节) | Transformer 架构与训练要点 | [作业1](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment1-basics/)     | ✅    |
-| [第5章 混合专家模型](./chapter5/chapter5_混合专家模型)                                 | MoE 原理、路由与工程实践   | -                                                                                               | ✅    |
-| [第6章 GPU 与相关优化](./chapter6/chapter6_第六章GPU和GPU相关的优化)                   | GPU 基础与优化技巧         | [作业2](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment2-systems/)    | ✅    |
-| [第7章 GPU 高性能编程](./chapter7/chapter7_第七章GPU高性能编程)                        | CUDA 与高性能编程          | [作业2](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment2-systems/)    | ✅    |
-| [第8章 分布式训练](./chapter8/chapter8_第八章分布式训练)                               | 并行范式与跨机训练         | [作业2](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment2-systems/)    | ✅    |
-| [第9章 Scaling Laws](./chapter9/chapter9_Scaling_Laws)                                 | 扩展定律与实验             | [作业3](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment3-scaling/)    | ✅    |
-| [第10章 推理](./chapter10/推理)                                                        | 推理性能与落地优化         | [作业6](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment6-evaluation/) | ✅    |
-| [第11章 数据工程](./chapter11/chapter11_数据工程)                                      | 数据清洗、构建与管理       | [作业4](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment4-data/)       | ✅    |
-| [第12章 评估与基准测试](./chapter12/chapter12_评估与基准测试)                          | 指标体系与评测方法         | [作业6](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment6-evaluation/) | ✅    |
-| [第13章 大模型的基本训练流程](./chapter13/chapter13_第十三章大模型的基本训练流程)      | 预训练、SFT、RL 流程       | [作业5](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment5-alignment/)  | ✅    |
-| [第14章 可验证奖励的强化学习](./chapter14/chapter14_可验证奖励的强化学习)              | RLVR 思想与实践            | [作业5](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment5-alignment/)  | ✅    |
-| [第15章 扩展内容](./chapter15/什么是LLM推理)                                           | - 什么是LLM推理？          | -                                                                                               | 🔄    |
+| 章节 | 关键内容 | 配套作业 | 状态 |
+|------|----------|----------|------|
+| [前言](前言.md) | 项目由来、背景及学习建议 | - | ✅ |
+| [第1章 工具使用](chapter1) | W&B 使用与实验追踪 | - | 📝 |
+| [第2章 分词器](chapter2/chapter2_分词器.md) | 分词器原理与 BPE 实现 | [作业1](../coursework/assignment1-basics/) | ✅ |
+| [第3章 PyTorch 与资源核算](chapter3/chapter3_pytorch与资源核算.md) | 训练原语、算力/显存估算 | - | ✅ |
+| [第4章 语言模型架构与训练细节](chapter4/chapter4_第四章语言模型架构和训练的技术细节.md) | Transformer 架构与训练要点 | [作业1](../coursework/assignment1-basics/) | ✅ |
+| [第5章 混合专家模型](chapter5/chapter5_混合专家模型.md) | MoE 原理、路由与工程实践 | - | ✅ |
+| [第6章 GPU 与相关优化](chapter6/chapter6_第六章GPU和GPU相关的优化.md) | GPU 基础与优化技巧 | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第7章 GPU 高性能编程](chapter7/chapter7_第七章GPU高性能编程.md) | CUDA 与高性能编程 | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第8章 分布式训练](chapter8/chapter8_第八章分布式训练.md) | 并行范式与跨机训练 | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第9章 Scaling Laws](chapter9/chapter9_Scaling_Laws.md) | 扩展定律与实验 | [作业3](../coursework/assignment3-scaling/) | ✅ |
+| [第10章 推理](chapter10/推理.md) | 推理性能与落地优化 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
+| [第11章 数据工程](chapter11/chapter11_数据工程.md) | 数据清洗、构建与管理 | [作业4](../coursework/assignment4-data/) | ✅ |
+| [第12章 评估与基准测试](chapter12/chapter12_评估与基准测试.md) | 指标体系与评测方法 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
+| [第13章 大模型的基本训练流程](chapter13/chapter13_第十三章大模型的基本训练流程.md) | 预训练、SFT、RL 流程 | [作业5](../coursework/assignment5-alignment/) | ✅ |
+| [第14章 可验证奖励的强化学习](chapter14/chapter14_可验证奖励的强化学习.md) | RLVR 思想与实践 | [作业5](../coursework/assignment5-alignment/) | ✅ |
+| [第15章 扩展内容](docs/chapter15/) | 1. 什么是LLM推理？（黎又榛）<br>2. LLM 的未来 - Lecun（黎又榛、jiangyinhe、李盛康、徐虎）| - | 🔄 |
 
-> 状态图例说明：✅ 已完成  🔄 更新中  📝 待完善  🚧 筹备中  ⏸️ 暂缓
+> 状态图例说明：✅ 已完成  🔄 更新中	📝 待完善	🚧 筹备中	 ⏸️ 暂缓	
+
 
 ## 📝 作业概览
 
-| 作业                                                                                                      | 核心任务                                                                                     | 状态 |
-| --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- | ---- |
-| [作业1：手搓大模型](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment1-basics/)   | 实现 tokenizer、model architecture、optimizer，训练一个极简语言模型                          | ✅    |
-| [作业2：系统优化](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment2-systems/)    | 性能分析与基准测试；用 Triton 实现 FlashAttention-2；构建分布式训练代码                      | ✅    |
-| [作业3：扩展定律](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment3-scaling/)    | 理解 Transformer 各组件功能；拟合 scaling law 预测模型扩展效果                               | ✅    |
-| [作业4：数据处理](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment4-data/)       | 将 Common Crawl 原始数据转换为预训练数据集，执行过滤与去重                                   | ✅    |
-| [作业5：模型对齐](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment5-alignment/)  | 应用 SFT 与强化学习（如 GRPO）训练模型解决数学问题                                           | ✅    |
-| [作业6：模型评估](https://github.com/datawhalechina/diy-llm/tree/main/coursework/assignment6-evaluation/) | 使用 lm-evaluation-harness 和 evalscope 进行多维度评测（语言理解、常识推理、代码、数学推理） | ✅    |
+| 作业 | 核心任务 |状态 |
+|------|----------|------|
+| [作业1：手搓大模型](../coursework/assignment1-basics/) | 实现 tokenizer、model architecture、optimizer，训练一个极简语言模型 | ✅ |
+| [作业2：系统优化](../coursework/assignment2-systems/) | 性能分析与基准测试；用 Triton 实现 FlashAttention-2；构建分布式训练代码 | ✅ |
+| [作业3：扩展定律](../coursework/assignment3-scaling/) | 理解 Transformer 各组件功能；拟合 scaling law 预测模型扩展效果 | ✅ |
+| [作业4：数据处理](../coursework/assignment4-data/) | 将 Common Crawl 原始数据转换为预训练数据集，执行过滤与去重 | ✅ |
+| [作业5：模型对齐](../coursework/assignment5-alignment/) | 应用 SFT 与强化学习（如 GRPO）训练模型解决数学问题 | ✅ |
+| [作业6：模型评估](../coursework/assignment6-evaluation/) | 使用 lm-evaluation-harness 和 evalscope 进行多维度评测（语言理解、常识推理、代码、数学推理） | ✅ |
+
 
 ## 🚀 快速开始
 
@@ -88,7 +84,6 @@ hero:
 # 克隆仓库
 git clone https://github.com/datawhalechina/diy-llm.git
 cd diy-llm
-
 # 安装基础依赖（根据具体作业需求安装）
 ```
 
@@ -96,14 +91,14 @@ cd diy-llm
 
 1️⃣ 理论学习 → 按章节顺序阅读 `docs/` 目录下的文档  
 2️⃣ 实践练习 → 完成 `coursework/` 目录下的 6 个作业  
-3️⃣ 深入理解 → 阅读代码实现，理解每个组件的设计
+3️⃣ 深入理解 → 阅读代码实现，理解每个组件的设计  
 
 ### 项目结构
 
-```text
+```
 CS336-Chinese-co-construction/
 ├── docs/                    # 理论章节文档
-│   ├── 前言/
+│   ├── 前言/           
 │   ├── chapter1/           # 工具使用
 │   ├── chapter2/           # 分词器
 │   ├── chapter3/           # PyTorch 与资源核算
@@ -117,7 +112,7 @@ CS336-Chinese-co-construction/
 │   ├── chapter11/          # 数据工程
 │   ├── chapter12/          # 评估与基准测试
 │   ├── chapter13/          # 大模型的基本训练流程
-│   ├── chapter14/          # 可验证奖励的强化学习
+│   └── chapter14/          # 可验证奖励的强化学习
 │   └── chapter15/          # 前沿扩展内容
 ├── coursework/              # 实践作业
 │   ├── assignment1-basics/        # 作业1：手搓大模型
@@ -157,27 +152,31 @@ CS336-Chinese-co-construction/
 
 <table border="0">
   <tbody>
-    <tr align="center">
+    <tr align="center" >
       <td>
-        <a href="https://github.com/xuhu0115"><img width="70" height="70" src="https://github.com/xuhu0115.png?s=40" alt="pic"></a><br>
-        <a href="https://github.com/xuhu0115">徐虎</a>
-        <p>项目负责人<br>Datawhale 成员<br>上海交通大学<br>负责内容：第1、3、9、12、14章；作业5、6；全文内容审核</p>
+         <a href="https://github.com/xuhu0115"><img width="70" height="70" src="https://github.com/xuhu0115.png?s=40" alt="pic"></a><br>
+         <a href="https://github.com/xuhu0115">徐虎</a> 
+        <p>项目负责人<br> Datawhale 成员<br> 上海交通大学 <br> 负责内容：第1、3、9、12、14章；作业5、6；全文内容审核</p>
       </td>
       <td>
-        <a href="https://github.com/kangkang-Adam"><img width="70" height="70" src="https://github.com/kangkang-Adam.png?s=40" alt="pic"></a><br>
-        <a href="https://github.com/kangkang-Adam">李盛康</a>
-        <p>项目负责人<br>Datawhale 成员<br>西安邮电大学<br>负责内容：第4、6、7、8、13章；作业2、4</p>
+         <a href="https://github.com/kangkang-Adam"><img width="70" height="70" src="https://github.com/kangkang-Adam.png?s=40" alt="pic"></a><br>
+         <a href="https://github.com/kangkang-Adam">李盛康</a> 
+        <p>项目负责人<br> Datawhale 成员<br> 西安邮电大学 <br> 负责内容：第4、6、7、8、13章；作业2、4</p>
       </td>
       <td>
-        <a href="https://github.com/1iyouzhen"><img width="70" height="70" src="https://github.com/1iyouzhen.png?s=40" alt="pic"></a><br>
-        <a href="https://github.com/1iyouzhen">黎又榛</a>
-        <p>项目负责人<br>Datawhale-鲸英助教<br>负责内容：第2、5、10、11、13章；作业1、3</p>
+         <a href="https://github.com/1iyouzhen"><img width="70" height="70" src="https://github.com/1iyouzhen.png?s=40" alt="pic"></a><br>
+         <a href="https://github.com/1iyouzhen">黎又榛</a>
+         <p>项目负责人<br> Datawhale-鲸英助教 <br>负责内容：第2、5、10、11、13章；作业1、3； </p>
       </td>
     </tr>
   </tbody>
 </table>
 
+
+
 - 感谢 [@aimetrics](https://github.com/aimetrics) 在[作业1 的 train.py](https://github.com/datawhalechina/diy-llm/blob/main/coursework/assignment1-basics/train.py) 中，增加了在 Macbook 设备上的 MPS 支持
+- 感谢[@FuTseYi](https://github.com/FuTseYi)(Datawhale成员)对网站迁移、部署和重构的支持
+- 感谢[@jiangyinhe](https://github.com/jiangyinhe)参与第 15 章扩展内容《LLM 的未来 - Lecun》的整理
 
 *注：我们感谢每一位为项目做出贡献的开发者！*
 
@@ -196,6 +195,8 @@ CS336-Chinese-co-construction/
 - 添加新内容时请遵循现有的文档格式
 - 提交PR时请提供清晰的描述和变更说明
 - 欢迎在Issue中讨论大的改动方案
+
+
 
 ## 📝 更新日志
 
