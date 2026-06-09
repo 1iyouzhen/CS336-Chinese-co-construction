@@ -124,8 +124,10 @@ export default defineConfig({
   title: 'Diy-LLM',
   description: '面向中文学习者的大语言模型系统化学习课程。',
   base: '/diy-llm/',
-  srcExclude: ['zh/**'],
   ignoreDeadLinks: true,
+  rewrites: {
+    'zh/:rest*': ':rest*',
+  },
   head: [
     ['link', { rel: 'icon', href: '/diy-llm/datawhale.png' }],
     ['meta', { name: 'theme-color', content: '#2563eb' }],
