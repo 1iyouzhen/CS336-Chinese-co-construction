@@ -38,7 +38,7 @@ LeCun的观点从一开始就很明确：**LLM本身并没有问题。** 它们�
 为什么说路线本身可能是错的？ 考虑一个简单的日常场景：“我需要洗车，洗车店离我家100米远。我应该走路去吗？”
 
 <div align="center">
-  <img src="images/1-LLM回答洗车问题.png" />
+  <img src="./images/1-LLM回答洗车问题.png" />
   <p>图 1.1 ChatGPT-5.5的回复</p>
 </div>
 
@@ -100,7 +100,7 @@ AlphaGo Zero的核心优势在于：有明确且可执行的围棋规则作为�
 LeCun分析LLM的发展瓶颈时指出，高质量的人类文本数据正在逐渐接近极限。虽然互联网每天仍在持续产生新的内容，但真正适合训练前沿大型语言模型（LLM）的高质量公开文本并不是无限的。
 
 <div align="center">
-  <img src="images/1-分析训练数据问题.png" />
+  <img src="./images/1-分析训练数据问题.png" />
   <p>图 1.2 对比公开人类文本数据总量大语言模型训练数据规模的增长速度，并预测了数据耗尽的关键时间节点</p>
 </div>
 
@@ -194,7 +194,7 @@ LLM的工作方式与此截然不同。它生成回答时是逐token顺序输出
 
 
 <div align="center">
-  <img src="images/2-世界模型智能框架.png" />
+  <img src="./images/2-世界模型智能框架.png" />
   <p>图 2.1 LeCun提出的智能源架构</p>
 </div>
 
@@ -250,7 +250,7 @@ LLM的常识来自训练数据里人类写下的经验。训练数据覆盖到�
 2023年谷歌DeepMind发布RT-2，直接推动二级市场将具身智能的商业化预期提前了三年。**然而，当技术从实验室走向真实场景，VLA的局限性在学术研究和工业实践中被反复验证——可靠性不足、数据依赖过重、泛化脆弱**。一项近期调查指出，VLA领域有一个"核心瓶颈"至今未得到充分审视：支撑具身学习的数据基础设施本身。而Yann LeCun在访谈中给出了迄今最直接的表态：”VLA现在基本上被视为失败"。这一判断并非孤立，而是建立在对VLA架构内在缺陷的清醒认识之上。从顶会论文的实证研究到行业应用的实际反馈，越来越多的证据正在印证这一结论。
 
 <div align="center">
-  <img src="images/3-VLM迭代流程.png" />
+  <img src="./images/3-VLM迭代流程.png" />
   <p>图 3.1 VLA迭代流程</p>
 </div>
 
@@ -294,7 +294,7 @@ VLA的失败并非单一原因，而是四个相互关联的层面共同作用�
 VLA的不可靠并非抽象判断，而是被大规模实证研究所证实的现实。2025年发表于软件工程顶级会议FSE的研究《VLATest》提出了首个面向VLA模型的模糊测试框架，对七个代表性VLA模型在机器人操作任务上的表现进行了系统评估。该研究通过自动生成多样化的操作场景，考察VLA模型在面对不同相机视角、光照条件、物体遮挡和未见物体时的表现。**结论直指要害：当前VLA模型缺乏实际部署所需的鲁棒性**。研究进一步发现，混淆物体的数量、光照条件、相机姿态和未见物体等因素，均能显著影响模型性能。
 
 <div align="center">
-  <img src="images/3-有无混淆对象.png" />
+  <img src="./images/3-有无混淆对象.png" />
   <p>图 3.2 有无混淆对象场景对比</p>
 </div>
 
@@ -436,7 +436,7 @@ LeCun给出了一个极为精练的定义：**从非常宽泛的层面来讲，�
 注意这个定义的重心不在"生成"，而在"预测后果"。换句话说，世界模型的存在意义是服务于规划与决策，而非重建人类视网膜或摄像头捕获的原始观测。
 
 <div align="center">
-  <img src="images/4-1-LLM vs WM.jpg" />
+  <img src="./images/4-1-LLM vs WM.jpg" />
   <p>图4.1 LLM vs World Model 对比示意图</p>
 </div>
 
@@ -523,7 +523,7 @@ $$Z\_t=Enc( O\_t ), Z\_{t+1}=Enc(O\_{t+1})$$
 $$\widehat{Z}\_{t+1} = Pred( Z\_t, a\_t  ) $$
 
 <div align="center">
-  <img src="images/4-2-首个稳定的JEPA——LeWorldModel流程示意图.png" />
+  <img src="./images/4-2-首个稳定的JEPA——LeWorldModel流程示意图.png" />
   <p>图4.2 首个稳定的JEPA——LeWorldModel流程示意图</p>
 </div>
 
@@ -602,8 +602,8 @@ $$
 将损失函数从PLDM的7项、6个可调超参，压缩到仅2项损失、1个有效超参 $λ$ ，LeWorldModel训练曲线单调收敛，不再像PLDM那样各损失项互相拉扯，如下图。
 
 <div align="center">
-  <img src="images/4-3-PLDM与LeWM在Push-T任务上的性能对比.png" />
-  <img src="images/4-3-PLDM与LeWM在Push-T任务上的性能对比2.png" />
+  <img src="./images/4-3-PLDM与LeWM在Push-T任务上的性能对比.png" />
+  <img src="./images/4-3-PLDM与LeWM在Push-T任务上的性能对比2.png" />
   <p>图4.3 LeWM与PLDM在Push-T任务上的loss曲线对比</p>
 </div>
 
@@ -612,7 +612,7 @@ $$
 LeWorldModel的Push-T成功率96%， PLDM提升18%；在Reacher、TwoRoom等任务上与SOTA持平或更优。但在OGBench-Cube上略逊于SOTA模型，这是因为OGBench-Cube为视觉更丰富的3D环境，这使得端到端训练编码器比2D任务更具挑战性；DINO-WM借助DINOv2的大规模预训练知识（在约1.24亿张图像上训练），对动态属性和旋转量等物理量具有明显优势；而LeWorldModel是从原始像素完全从头训练的 15M 参数小模型，缺乏这种先验。
 
 <div align="center">
-  <img src="images/4-4-种数据集上的模型性能对比.png" />
+  <img src="./images/4-4-种数据集上的模型性能对比.png" />
   <p>图4.4 LeWM与多种模型的性能对比</p>
 </div>
 
@@ -622,7 +622,7 @@ LeWorldModel的Push-T成功率96%， PLDM提升18%；在Reacher、TwoRoom等任�
 
 
 <div align="center">
-  <img src="images/4-5-同等算力下，LeWorld的规划速度对比.png" />
+  <img src="./images/4-5-同等算力下，LeWorld的规划速度对比.png" />
   <p>图4.5 同等算力下，Le-WorldModel与多种模型的规划速度对比</p>
 </div>
 
@@ -835,7 +835,7 @@ LeCun举了一个具体而令人警醒的例子，发生在LLM相对最可靠的
 LLM的不安全性在语言领域已难以根治，而当它被迁移到VLA这类具身架构时，问题被进一步激化。**VLA继承了LLM的所有缺陷，却要在物理世界中承担后果**——语言模型输出错误，用户可以重试；机器人输出错误动作，代价可能不可撤回。
 
 <div align="center">
-  <img src="images/6-不同条件会对模型产生影响.png" />
+  <img src="./images/6-不同条件会对模型产生影响.png" />
   <p>图 6.1 扰动条件对VLA模型性能的影响</p>
 </div>
 
@@ -853,7 +853,7 @@ LeCun说得很清楚：训练误差和测试误差之间存在差距。总会有
 **其实编码智能体抹掉硬盘的案例并非孤例**。在具身智能领域，VLA模型面临的伦理对齐挑战更加棘手。中国科学技术大学等团队的研究发现，当指令中存在“无关的上下文信息”时（比如“把桌上那个红色的咖啡杯拿过来，虽然今天是周三，天气很好”），VLA模型会同时受到主指令和无关信息的干扰，暴露出在安全性和效率方面的严重缺陷。
 
 <div align="center">
-  <img src="images/6-无关信息会对模型产生影响.png" />
+  <img src="./images/6-无关信息会对模型产生影响.png" />
   <p>图 6.2 无关信息会对模型产生影响</p>
 </div>
 
@@ -951,7 +951,7 @@ LeCun提出了一个少有人关注的隐忧：未来人们获取信息将越来
 LeCun认为，**Tapestry**可能提供一种兼顾数据主权与全球协作训练的方案，它是一种**联邦学习架构**，但比传统联邦学习更精妙：你将拥有来自全球的贡献者共同参与训练一个全球性模型，该模型本质上将成为汇聚世界所有知识与文化的宝库。这些贡献者将提供数据和计算资源，但会保留对其数据的控制权，无需与其他贡献者共享原始数据。
 
 <div align="center">
-  <img src="images/7_project_tapestry.png" />
+  <img src="./images/7_project_tapestry.png" />
   <p>图 7.1 联邦学习数据中心示意图</p>
 </div>
 
@@ -967,7 +967,7 @@ LeCun认为，**Tapestry**可能提供一种兼顾数据主权与全球协作训
 > **背景补充**：传统联邦学习（Federated Learning）由Google在2016年提出，主要用于在手机等边缘设备上训练模型而不上传用户数据。Tapestry把这一思路提升到了国家/机构层面——不是保护个人隐私，而是保护**数据主权**。这一想法的突破性在于：它将"不共享数据"从一种妥协（"我的数据不给你"）变成了一种优势（"我们各自的私域数据合起来，能训出比任何单一方更强的模型"）。
 
 <div align="center">
-  <img src="images/7_federated_learning.png" />
+  <img src="./images/7_federated_learning.png" />
   <p>图 7.2 2016年由Google提出的初代联邦学习</p>
 </div>
 
@@ -1041,7 +1041,7 @@ LeCun在访谈中给出了一个清晰的解释——"我在JEPA中谈的是，�
 既然LLM有其边界，世界模型尚未成熟，那么一个现实的问题就浮出水面：两者能否协作，而不是互相取代？综合LeCun在访谈中的论述，未来AI系统最可能的形态不是"LLM或世界模型"的二选一，而是一个三层分工架构：
 
 <div align="center">
-  <img src="images/7_lecun_system2.png" />
+  <img src="./images/7_lecun_system2.png" />
   <p>图 8.1 基于LeCun视角的三层系统架构</p>
 </div>
 
@@ -1071,7 +1071,7 @@ LeCun在访谈中给出了一个清晰的解释——"我在JEPA中谈的是，�
 - **系统二**（缓慢、深思、后果模拟） → 世界模型的优势区间：在行动前模拟多种可能的后果，通过搜索和优化找到最优路径。
 
 <div align="center">
-  <img src="images/7_thinking_mode.png" />
+  <img src="./images/7_thinking_mode.png" />
   <p>图 8.2 系统一 vs 系统二</p>
 </div>
 
