@@ -61,7 +61,7 @@
 | [第12章 评估与基准测试](chapter12/chapter12_评估与基准测试.md) | MMLU、HumanEval、HELM、CEval、AlpacaEval、Arena 排名 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
 | [第13章 大模型的基本训练流程](chapter13/chapter13_第十三章大模型的基本训练流程.md) | Pre-training、SFT、DPO、RLHF PPO 流程、Alignment Tax | [作业5](../coursework/assignment5-alignment/) | ✅ |
 | [第14章 可验证奖励的强化学习](chapter14/chapter14_可验证奖励的强化学习.md) | GRPO、Rule-based Verifier、Outcome/Process Reward、RLVR 与 R1 训练方案 | [作业5](../coursework/assignment5-alignment/) | ✅ |
-| [第15章 扩展内容](chapter15/) | 1. 什么是 LLM 推理？System 1 vs System 2<br>2. LLM 的未来 —— Lecun JEPA 架构与 AGI 路线图 | - | 🔄 |
+| [第15章 扩展内容](chapter15/) | 1. LLM 推理的本质是什么？（黎又榛）<br>2. LeCun 眼中 LLM 的未来在哪里？（黎又榛、jiangyinhe、李盛康、徐虎） | - | 🔄 |
 
 > 状态图例说明：✅ 已完成  🔄 更新中	📝 待完善	🚧 筹备中	 ⏸️ 暂缓	
 
