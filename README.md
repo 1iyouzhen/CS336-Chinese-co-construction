@@ -46,22 +46,22 @@
 
 | 章节 | 关键内容 | 配套作业 | 状态 |
 |------|----------|----------|------|
-| [前言](docs/zh/前言.md) | 为什么要做这门课？适合谁学？怎么学最有效？ | - | ✅ |
-| [第1章 工具使用](docs/zh/chapter1) | 工欲善其事，必先利其器——用 W&B 追踪每一次实验 | - | 📝 |
-| [第2章 分词器](docs/zh/chapter2/chapter2_分词器.md) | 让机器"读懂"文字的第一步：从零实现 BPE 分词算法 | [作业1](coursework/assignment1-basics/) | ✅ |
-| [第3章 PyTorch 与资源核算](docs/zh/chapter3/chapter3_pytorch与资源核算.md) | 你的 GPU 够不够？学会精准估算显存和算力，少花冤枉钱 | - | ✅ |
-| [第4章 语言模型架构与训练细节](docs/zh/chapter4/chapter4_第四章语言模型架构和训练的技术细节.md) | 拆解 Transformer 的每一个零件，搞懂 LLM 训练的所有细节 | [作业1](coursework/assignment1-basics/) | ✅ |
-| [第5章 混合专家模型](docs/zh/chapter5/chapter5_混合专家模型.md) | GPT-4 和 DeepSeek 的秘密武器：MoE 如何用"专家投票"让模型又大又快 | - | ✅ |
-| [第6章 GPU 与相关优化](docs/zh/chapter6/chapter6_第六章GPU和GPU相关的优化.md) | 同样的模型，为什么别人训练比你快10倍？GPU 优化实战 | [作业2](coursework/assignment2-systems/) | ✅ |
-| [第7章 GPU 高性能编程](docs/zh/chapter7/chapter7_第七章GPU高性能编程.md) | 深入 CUDA 世界，写出让 GPU 火力全开的代码 | [作业2](coursework/assignment2-systems/) | ✅ |
-| [第8章 分布式训练](docs/zh/chapter8/chapter8_第八章分布式训练.md) | 单卡不够用？从 DP 到 FSDP，一文吃透多卡多机训练 | [作业2](coursework/assignment2-systems/) | ✅ |
-| [第9章 Scaling Laws](docs/zh/chapter9/chapter9_Scaling_Laws.md) | 花1/10的算力预测大模型的性能——Scaling Laws 的神奇力量 | [作业3](coursework/assignment3-scaling/) | ✅ |
-| [第10章 推理](docs/zh/chapter10/推理.md) | 模型训好了只是开始，让它跑得快、省资源才是真功夫 | [作业6](coursework/assignment6-evaluation/) | ✅ |
-| [第11章 数据工程](docs/zh/chapter11/chapter11_数据工程.md) | 垃圾进，垃圾出——高质量数据才是 LLM 的灵魂 | [作业4](coursework/assignment4-data/) | ✅ |
-| [第12章 评估与基准测试](docs/zh/chapter12/chapter12_评估与基准测试.md) | 你的模型到底好不好？科学评测方法让你心中有数 | [作业6](coursework/assignment6-evaluation/) | ✅ |
-| [第13章 大模型的基本训练流程](docs/zh/chapter13/chapter13_第十三章大模型的基本训练流程.md) | 从裸模型到聊天助手：预训练→SFT→RLHF 完整流水线 | [作业5](coursework/assignment5-alignment/) | ✅ |
-| [第14章 可验证奖励的强化学习](docs/zh/chapter14/chapter14_可验证奖励的强化学习.md) | DeepSeek-R1 背后的技术：用"对错分明"的奖励信号让模型学会推理 | [作业5](coursework/assignment5-alignment/) | ✅ |
-| [第15章 扩展内容](docs/zh/chapter15/) | 1. LLM 推理的本质是什么？（黎又榛）<br>2. LeCun 眼中 LLM 的未来在哪里？（黎又榛、jiangyinhe、李盛康、徐虎）| - | 🔄 |
+| [前言](docs/zh/前言.md) | 项目背景、学习路线、前置知识 | - | ✅ |
+| [第1章 工具使用](docs/zh/chapter1) | W&B 实验追踪、超参数搜索、可视化面板 | - | 📝 |
+| [第2章 分词器](docs/zh/chapter2/chapter2_分词器.md) | BPE 算法原理、Unicode 规范化、手写 tokenizer 训练代码 | [作业1](coursework/assignment1-basics/) | ✅ |
+| [第3章 PyTorch 与资源核算](docs/zh/chapter3/chapter3_pytorch与资源核算.md) | 混合精度训练、梯度累积、FLOPs/显存估算 | - | ✅ |
+| [第4章 语言模型架构与训练细节](docs/zh/chapter4/chapter4_第四章语言模型架构和训练的技术细节.md) | RoPE、RMSNorm、SwiGLU、AdamW、Pre-Norm vs Post-Norm、学习率调度 | [作业1](coursework/assignment1-basics/) | ✅ |
+| [第5章 混合专家模型](docs/zh/chapter5/chapter5_混合专家模型.md) | Top-K 路由、负载均衡、辅助损失、Expert Parallelism、DeepSeekMoE | - | ✅ |
+| [第6章 GPU 与相关优化](docs/zh/chapter6/chapter6_第六章GPU和GPU相关的优化.md) | 显存带宽与计算强度、Flash Attention、Kernel Fusion、混合精度、BF16/TF32 | [作业2](coursework/assignment2-systems/) | ✅ |
+| [第7章 GPU 高性能编程](docs/zh/chapter7/chapter7_第七章GPU高性能编程.md) | CUDA 编程模型、Tensor Cores、Shared Memory、Triton 入门 | [作业2](coursework/assignment2-systems/) | ✅ |
+| [第8章 分布式训练](docs/zh/chapter8/chapter8_第八章分布式训练.md) | 数据并行/模型并行/流水线并行、ZeRO-1/2/3、FSDP、梯度累积、All-Reduce | [作业2](coursework/assignment2-systems/) | ✅ |
+| [第9章 Scaling Laws](docs/zh/chapter9/chapter9_Scaling_Laws.md) | Chinchilla 定律、计算最优配置、Scaling 实验设计、Extrapolation | [作业3](coursework/assignment3-scaling/) | ✅ |
+| [第10章 推理](docs/zh/chapter10/推理.md) | KV Cache、投机解码、量化 (GPTQ/AWQ)、PagedAttention、Continuous Batching | [作业6](coursework/assignment6-evaluation/) | ✅ |
+| [第11章 数据工程](docs/zh/chapter11/chapter11_数据工程.md) | 数据质量过滤、MinHash 去重、PII 脱敏、数据配比、Data Curriculum | [作业4](coursework/assignment4-data/) | ✅ |
+| [第12章 评估与基准测试](docs/zh/chapter12/chapter12_评估与基准测试.md) | MMLU、HumanEval、HELM、CEval、AlpacaEval、Arena 排名 | [作业6](coursework/assignment6-evaluation/) | ✅ |
+| [第13章 大模型的基本训练流程](docs/zh/chapter13/chapter13_第十三章大模型的基本训练流程.md) | Pre-training、SFT、DPO、RLHF PPO 流程、Alignment Tax | [作业5](coursework/assignment5-alignment/) | ✅ |
+| [第14章 可验证奖励的强化学习](docs/zh/chapter14/chapter14_可验证奖励的强化学习.md) | GRPO、Rule-based Verifier、Outcome/Process Reward、RLVR 与 R1 训练方案 | [作业5](coursework/assignment5-alignment/) | ✅ |
+| [第15章 扩展内容](docs/zh/chapter15/) | 1. LLM 推理的本质是什么？（黎又榛）<br>2. LeCun 眼中 LLM 的未来在哪里？（黎又榛、jiangyinhe、李盛康、徐虎） | - | 🔄 |
 > 状态图例说明：✅ 已完成  🔄 更新中	📝 待完善	🚧 筹备中	 ⏸️ 暂缓	
 
 

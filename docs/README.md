@@ -1,5 +1,5 @@
 <div align='center'>
-    <img src="./images/diy-llm.png" alt="alt text" width="100%">
+    <img src="./public/diy-llm.png" alt="alt text" width="100%">
     <h1>Diy-LLM</h1>
 </div>
 
@@ -46,22 +46,22 @@
 
 | 章节 | 关键内容 | 配套作业 | 状态 |
 |------|----------|----------|------|
-| [前言](前言.md) | 项目由来、背景及学习建议 | - | ✅ |
-| [第1章 工具使用](chapter1) | W&B 使用与实验追踪 | - | 📝 |
-| [第2章 分词器](chapter2/chapter2_分词器.md) | 分词器原理与 BPE 实现 | [作业1](../coursework/assignment1-basics/) | ✅ |
-| [第3章 PyTorch 与资源核算](chapter3/chapter3_pytorch与资源核算.md) | 训练原语、算力/显存估算 | - | ✅ |
-| [第4章 语言模型架构与训练细节](chapter4/chapter4_第四章语言模型架构和训练的技术细节.md) | Transformer 架构与训练要点 | [作业1](../coursework/assignment1-basics/) | ✅ |
-| [第5章 混合专家模型](chapter5/chapter5_混合专家模型.md) | MoE 原理、路由与工程实践 | - | ✅ |
-| [第6章 GPU 与相关优化](chapter6/chapter6_第六章GPU和GPU相关的优化.md) | GPU 基础与优化技巧 | [作业2](../coursework/assignment2-systems/) | ✅ |
-| [第7章 GPU 高性能编程](chapter7/chapter7_第七章GPU高性能编程.md) | CUDA 与高性能编程 | [作业2](../coursework/assignment2-systems/) | ✅ |
-| [第8章 分布式训练](chapter8/chapter8_第八章分布式训练.md) | 并行范式与跨机训练 | [作业2](../coursework/assignment2-systems/) | ✅ |
-| [第9章 Scaling Laws](chapter9/chapter9_Scaling_Laws.md) | 扩展定律与实验 | [作业3](../coursework/assignment3-scaling/) | ✅ |
-| [第10章 推理](chapter10/推理.md) | 推理性能与落地优化 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
-| [第11章 数据工程](chapter11/chapter11_数据工程.md) | 数据清洗、构建与管理 | [作业4](../coursework/assignment4-data/) | ✅ |
-| [第12章 评估与基准测试](chapter12/chapter12_评估与基准测试.md) | 指标体系与评测方法 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
-| [第13章 大模型的基本训练流程](chapter13/chapter13_第十三章大模型的基本训练流程.md) | 预训练、SFT、RL 流程 | [作业5](../coursework/assignment5-alignment/) | ✅ |
-| [第14章 可验证奖励的强化学习](chapter14/chapter14_可验证奖励的强化学习.md) | RLVR 思想与实践 | [作业5](../coursework/assignment5-alignment/) | ✅ |
-| [第15章 扩展内容](docs/chapter15/) | 1. 什么是LLM推理？（黎又榛）<br>2. LLM 的未来 - Lecun（黎又榛、jiangyinhe、李盛康、徐虎）| - | 🔄 |
+| [前言](前言.md) | 项目背景、学习路线、前置知识 | - | ✅ |
+| [第1章 工具使用](chapter1) | W&B 实验追踪、超参数搜索、可视化面板 | - | 📝 |
+| [第2章 分词器](chapter2/chapter2_分词器.md) | BPE 算法原理、Unicode 规范化、手写 tokenizer 训练代码 | [作业1](../coursework/assignment1-basics/) | ✅ |
+| [第3章 PyTorch 与资源核算](chapter3/chapter3_pytorch与资源核算.md) | 混合精度训练、梯度累积、FLOPs/显存估算 | - | ✅ |
+| [第4章 语言模型架构与训练细节](chapter4/chapter4_第四章语言模型架构和训练的技术细节.md) | RoPE、RMSNorm、SwiGLU、AdamW、Pre-Norm vs Post-Norm、学习率调度 | [作业1](../coursework/assignment1-basics/) | ✅ |
+| [第5章 混合专家模型](chapter5/chapter5_混合专家模型.md) | Top-K 路由、负载均衡、辅助损失、Expert Parallelism、DeepSeekMoE | - | ✅ |
+| [第6章 GPU 与相关优化](chapter6/chapter6_第六章GPU和GPU相关的优化.md) | 显存带宽与计算强度、Flash Attention、Kernel Fusion、混合精度、BF16/TF32 | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第7章 GPU 高性能编程](chapter7/chapter7_第七章GPU高性能编程.md) | CUDA 编程模型、Tensor Cores、Shared Memory、Triton 入门 | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第8章 分布式训练](chapter8/chapter8_第八章分布式训练.md) | 数据并行/模型并行/流水线并行、ZeRO-1/2/3、FSDP、梯度累积、All-Reduce | [作业2](../coursework/assignment2-systems/) | ✅ |
+| [第9章 Scaling Laws](chapter9/chapter9_Scaling_Laws.md) | Chinchilla 定律、计算最优配置、Scaling 实验设计、Extrapolation | [作业3](../coursework/assignment3-scaling/) | ✅ |
+| [第10章 推理](chapter10/推理.md) | KV Cache、投机解码、量化 (GPTQ/AWQ)、PagedAttention、Continuous Batching | [作业6](../coursework/assignment6-evaluation/) | ✅ |
+| [第11章 数据工程](chapter11/chapter11_数据工程.md) | 数据质量过滤、MinHash 去重、PII 脱敏、数据配比、Data Curriculum | [作业4](../coursework/assignment4-data/) | ✅ |
+| [第12章 评估与基准测试](chapter12/chapter12_评估与基准测试.md) | MMLU、HumanEval、HELM、CEval、AlpacaEval、Arena 排名 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
+| [第13章 大模型的基本训练流程](chapter13/chapter13_第十三章大模型的基本训练流程.md) | Pre-training、SFT、DPO、RLHF PPO 流程、Alignment Tax | [作业5](../coursework/assignment5-alignment/) | ✅ |
+| [第14章 可验证奖励的强化学习](chapter14/chapter14_可验证奖励的强化学习.md) | GRPO、Rule-based Verifier、Outcome/Process Reward、RLVR 与 R1 训练方案 | [作业5](../coursework/assignment5-alignment/) | ✅ |
+| [第15章 扩展内容](chapter15/) | 1. 什么是 LLM 推理？System 1 vs System 2<br>2. LLM 的未来 —— Lecun JEPA 架构与 AGI 路线图 | - | 🔄 |
 
 > 状态图例说明：✅ 已完成  🔄 更新中	📝 待完善	🚧 筹备中	 ⏸️ 暂缓	
 
