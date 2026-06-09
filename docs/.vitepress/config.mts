@@ -89,7 +89,7 @@ const zhNav = [
   },
   {
     text: '扩展内容',
-    items: [{ text: '第15章', link: '/chapter15/什么是LLM推理' },{ text: '第15章', link: '/chapter15/LLM的未来LeCun' }],
+    items: [{ text: '第15章-1.什么是LLM推理', link: '/chapter15/什么是LLM推理' },{ text: '第15章-2.LLM的未来LeCun', link: '/chapter15/LLM的未来LeCun' }],
   },
 ]
 
