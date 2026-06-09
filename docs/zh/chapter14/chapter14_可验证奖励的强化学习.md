@@ -179,7 +179,7 @@ $$
 下图展示了强化学习从人类反馈（RLHF）中，使用近端策略优化（PPO）算法训练语言模型的整体流程。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-0-ppo-flowchart.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-0-ppo-flowchart.png" />
    <p>图14.0 ppo算法流程图</p>
 </div>
 
@@ -236,14 +236,14 @@ $$
 当我们看 OPENAI 关于 [PPO](https://spinningup.openai.com/en/latest/algorithms/ppo.html) 算法的文档，他看起来很简单：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-1-ppo算法伪代码.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-1-ppo算法伪代码.png" />
    <p>图14.1 ppo算法伪代码</p>
 </div>
 
 但在实践上，PPO 的理论和实现完全是两回事。PPO 理论简洁，但实际调参和实现陷阱极多（如价值函数训练、优势估计、KL 控制、奖励归一化等），有篇博客甚至列出了[37个PPO实现细节](https://iclr-blog-track.github.io/2022/03/25/ppo-implementation-details/)，发现不同的 PPO 变体在 RL 的 benchmarks 表现出了不同的得分。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-2-ppo实现细节对性能的影响.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-2-ppo实现细节对性能的影响.png" />
    <p>图14.2 ppo实现细节对性能的影响.png</p>
 </div>
 
@@ -400,7 +400,7 @@ def compute_loss(self, rollouts):
 
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-3-ppo训练过程曲线.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-3-ppo训练过程曲线.png" />
    <p>图14.3 ppo训练过程曲线</p>
  </div>
 
@@ -440,7 +440,7 @@ DPO（Direct Preference Optimization）是近年来兴起的一种替代方案�
 **GRPO (Group Relative Policy Optimization)** 是在 [DeepSeekMath](https://arxiv.org/pdf/2402.03300) 论文中提出并在 [Deepseek-R1](https://arxiv.org/abs/2501.12948) 中发扬光大的算法。GRPO 在 PPO 的基础上，移除了价值函数（Value Function）和优势计算（Advantage Computation）。这是对 PPO 最大的改动，也是其轻量化的根本原因。并且采用了一种全新的方式来估算“优势”——即 “组内 z-score”（z-score within group）。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-4-ppo与grpo的对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-4-ppo与grpo的对比.png" />
    <p>图14.4 PPO与GRPO的对比</p>
  </div>
 
@@ -660,7 +660,7 @@ episodes = {
 GRPO 的实际效果如何呢？下图展示了在两个数学推理基准测试上的模型性能：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-5-grpo与其他训练方法在两个数学推理基准测试上的模型性能对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-5-grpo与其他训练方法在两个数学推理基准测试上的模型性能对比.png" />
    <p>图14.5 GRPO与其他训练方法在两个数学推理基准测试上的模型性能对比</p>
  </div>
 
@@ -687,7 +687,7 @@ GRPO 通过“组内 z-score”来归一化奖励或计算优势，这样做是�
 一个无偏梯度版本的 GRPO 是怎样的？
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-6-Dr-GRPO与标准的GRPO的数学公式与性能对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-6-Dr-GRPO与标准的GRPO的数学公式与性能对比.png" />
    <p>图14.6 Dr.GRPO与标准的GRPO的数学公式与性能对比</p>
  </div>
 
@@ -725,7 +725,7 @@ GRPO的目标函数中，针对单个响应 \(o_i\) 在时间步 \(t\) 的梯度
 [DeepSeek R1](https://arxiv.org/pdf/2501.12948)这篇论文引起了不小的轰动。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-7-DeepSeek-R1引起广泛的关注.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-7-DeepSeek-R1引起广泛的关注.png" />
    <p>图14.7 DeepSeek-R1引起广泛的关注</p>
  </div>
 
@@ -739,7 +739,7 @@ R1 有何特别之处？
 他们沿用来自 DeepSeekMath 这篇论文里的 GRPO 成果。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-8-GRPO和其他算法的对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-8-GRPO和其他算法的对比.png" />
    <p>图14.8 GRPO和其他算法的对比</p>
 </div>
 
@@ -755,7 +755,7 @@ DeepSeek R1 的成功证明了**纯强化学习**在推理任务上的巨大潜�
     - 数据：未公开
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-9-Deepseek-R1-Zero和OpenAI-o1在相关推理基准上的性能对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-9-Deepseek-R1-Zero和OpenAI-o1在相关推理基准上的性能对比.png" />
    <p>图14.9 Deepseek-R1-Zero和OpenAI-o1在相关推理基准上的性能对比</p>
 </div>
 
@@ -764,14 +764,14 @@ DeepSeek R1 的成功证明了**纯强化学习**在推理任务上的巨大潜�
 **Deepseek-R1-Zero 产生了有趣的现象** **Aha Moment (顿悟时刻)**: 模型在训练中期开始学会自我反思（Self-correction），例如“等等，我算错了，应该重新尝试...”。
     
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-10-DeepSeek-R1-Zero在训练期间的AIME准确率和在训练集上的平均响应长度.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-10-DeepSeek-R1-Zero在训练期间的AIME准确率和在训练集上的平均响应长度.png" />
    <p>图14.10 DeepSeek-R1-Zero在训练期间的AIME准确率和在训练集上的平均响应长度</p>
 </div>
 
 思维时间的增加促进了复杂行为的自主发展。 具体而言，DeepSeek-R1-Zero 越来越多地展现出高级推理策略，例如反思性推理和系统性地探索替代解决方案，显著提升了其在数学和编码等可验证任务上的表现。 
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-11-aha-moment的发现.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-11-aha-moment的发现.png" />
    <p>图14.11 aha moment的发现</p>
 </div>
 
@@ -782,14 +782,14 @@ DeepSeek R1 的成功证明了**纯强化学习**在推理任务上的巨大潜�
 GRPO 使用的是有偏的优化目标，当优化目标（无论是奖励模型还是 DPO 的损失函数）无意中偏向于特定长度的输出时，模型在追求最大化该目标的过程中，就会表现出“长度偏见”。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-6-Dr-GRPO与标准的GRPO的数学公式与性能对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-6-Dr-GRPO与标准的GRPO的数学公式与性能对比.png" />
    <p>图14.6 Dr.GRPO与标准的GRPO的数学公式与性能对比</p>
  </div>
 
 基础模型早已表现出“aha moment”：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-12-DeepSeek-V3-Base早已展现出aha-moment现象案例.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-12-DeepSeek-V3-Base早已展现出aha-moment现象案例.png" />
    <p>图14.12 DeepSeek-V3-Base早已展现出aha-moment现象案例</p>
 </div>
 
@@ -798,7 +798,7 @@ GRPO 使用的是有偏的优化目标，当优化目标（无论是奖励模型
 尽管 DeepSeek-R1-Zero 展现出强大的推理能力，但它也面临一些问题。DeepSeek-R1-Zero 在可读性差和语言混合等方面存在挑战，因为 DeepSeek-V3-Base 是在多种语言上进行训练的，特别是英语和中文。为解决这些问题，Deepseek 团队开发了 DeepSeek-R1，其流程如图 2 所示。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-13-Deepseek-R1开发流程.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-13-Deepseek-R1开发流程.png" />
    <p>图14.13 Deepseek-R1开发流程</p>
 </div>
 
@@ -813,7 +813,7 @@ DeepSeek-V3-Base 作为基座模型，使用**冷启动长思维链数据**进�
 对于冷启动长思维链数据的收集，具体来说，他们首先收集了数千个高质量、多样化的推理提示。对于每个提示，使用 DeepSeek-R1-Zero 以 1.0 的相对较高 temperature 生成多个推理轨迹。接下来，过滤这些生成内容，只保留具有正确最终答案和可读格式的。对于数学输出，我们使用 sympy(https://www.sympy.org/) 进行解析和表达式比较；对于格式化，我们应用诸如重复检测和语言混合过滤之类的规则。最后，提示 DeepSeek-V3 来精炼推理和摘要，以确保正确的格式和人类友好的表达。特别是，为了解决语言混合问题，他们指示 DeepSeek-V3：“Translate the thinking process to the same language as the question.”。由于 DeepSeek-R1-Zero 的摘要仅提供最终答案，我们使用 Listing 1 中的摘要提示来生成一个简洁、易于人类阅读的解决方案，该解决方案概述了推理步骤和最终结果。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-14-产生人类可读回答的提示.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-14-产生人类可读回答的提示.png" />
    <p>图14.14 产生人类可读回答的提示</p>
 </div>
 
@@ -832,7 +832,7 @@ DeepSeek-V3-Base 作为基座模型，使用**冷启动长思维链数据**进�
 ##### DeepSeek-R1 效果如何呢？
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-15-DeepSeek-R1和其他模型的比较.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-15-DeepSeek-R1和其他模型的比较.png" />
    <p>图14.15 DeepSeek-R1和其他模型的比较</p>
 </div>
 
@@ -841,7 +841,7 @@ DeepSeek-V3-Base 作为基座模型，使用**冷启动长思维链数据**进�
 R1 的另一个巨大贡献是证明了**大模型的推理能力可以蒸馏给小模型**。使用 R1 生成的 800k 条数据微调 Qwen2.5，让学生模型（Qwen2.5）学会教师模型（R1）的推理能力！
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-16-Deepseek-R1蒸馏模型和其他模型的比较.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-16-Deepseek-R1蒸馏模型和其他模型的比较.png" />
    <p>图14.16 Deepseek-R1蒸馏模型和其他模型的比较</p>
 </div>
 
@@ -850,7 +850,7 @@ R1 的另一个巨大贡献是证明了**大模型的推理能力可以蒸馏给
 除了 Deepseek-R1 这种范式可以得到一个强大的推理模型外，我们直接使用 Base+SFT 也可以得到一个性能不错的推理模型。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-17-s1使用1k高质量样本提高数学推理能力.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-17-s1使用1k高质量样本提高数学推理能力.png" />
    <p>图14.17 s1使用1k高质量样本提高数学推理能力</p>
 </div>
 
@@ -859,7 +859,7 @@ R1 的另一个巨大贡献是证明了**大模型的推理能力可以蒸馏给
 上海交通大学的刘鹏飞团队在[LIMO: Less is More for Reasoning](https://arxiv.org/pdf/2502.03387)中也得到了相似的结论，使用 800 个高质量个高质量、带有长思维链的数据，在 Qwen2.5-32B-Instruct 上进行 SFT 大大提高了模型的数学推理能力。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-18-limo使用800高质量样本提高数学推理能力.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-18-limo使用800高质量样本提高数学推理能力.png" />
    <p>图14.18 s1使用1k高质量样本提高数学推理能力</p>
 </div>
 
@@ -870,7 +870,7 @@ R1 的另一个巨大贡献是证明了**大模型的推理能力可以蒸馏给
 通过 Base+RL 这种路线同样可以获得推理模型，除了 Deepseek-R1-Zero外，[LIMR](https://arxiv.org/abs/2502.11886)（Qwen2.5-Math-7B+PPO）和[Less is More: Improving LLM Alignment via Preference Data Selection](https://arxiv.org/abs/2502.14560)（llama3-8B+DPO）两篇工作也证明了这条路线的可行性。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-19-limr与其他模型的性能比较.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-19-limr与其他模型的性能比较.png" />
    <p>图14.19 limr与其他模型的性能比较</p>
 </div>
 
@@ -897,7 +897,7 @@ Deepseek-R1 团队也分享了他们在 DeepSeek-R1 开发的早期阶段，做�
 #### 长思维链推理策略
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-20-Kimi-k1.5的长思维链结果.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-20-Kimi-k1.5的长思维链结果.png" />
    <p>图14.20 Kimi-k1.5的长思维链结果</p>
 </div>
 
@@ -981,21 +981,21 @@ Kimi 团队观察到一个“过度思考”现象，即模型响应的长度在
 Kimi-k1.5 在性能上与“o1”大致相当，甚至可能更优:
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-21-Kimi-k1.5与其他的方法的性能对比.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-21-Kimi-k1.5与其他的方法的性能对比.png" />
    <p>图14.21 Kimi-k1.5的长思维链结果</p>
 </div>
 
 其他有趣的结果：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-22-Kimi-k1.5模型在不同基准测试上的训练准确率和长度的变化.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-22-Kimi-k1.5模型在不同基准测试上的训练准确率和长度的变化.png" />
    <p>图14.22 Kimi-k1.5的长思维链结果</p>
 </div>
 
 #### 消融实验
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-23-Kimi-k1.5和ReST用于策略梯度优化的比较.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-23-Kimi-k1.5和ReST用于策略梯度优化的比较.png" />
    <p>图14.23 Kimi-k1.5和ReST用于策略梯度优化的比较</p>
 </div>
 
@@ -1007,14 +1007,14 @@ Kimi-k1.5 在性能上与“o1”大致相当，甚至可能更优:
 Qwen3 家族最大型号的模型 Qwen3-235B-A22B 性能超过了 OpenAI-o1 和 Deepseek-R1，哪怕是 Qwen3-32B 也与 o1 性能相当。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-24-Qwen3和其他模型的性能比较.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-24-Qwen3和其他模型的性能比较.png" />
    <p>图14.24 Qwen3和其他模型的性能比较</p>
 </div>
 
 Qwen3 的后训练流程精心设计了两个核心目标：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-25-Qwen3系列模型的后训练管道.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-25-Qwen3系列模型的后训练管道.png" />
    <p>图14.25 Qwen3系列模型的后训练管道</p>
 </div>
 
@@ -1038,7 +1038,7 @@ Qwen3 的后训练流程精心设计了两个核心目标：
 1.混合带标签的非思考和思考数据
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-26-思考模式融合阶段的SFT数据示例.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-26-思考模式融合阶段的SFT数据示例.png" />
    <p>图14.26 思考模式融合阶段的SFT数据示例</p>
 </div>
 
@@ -1051,7 +1051,7 @@ Qwen3 的后训练流程精心设计了两个核心目标：
 这张图表展示了在不同基准测试（AIME'24, AIME'25, LiveCodeBench (v5), GPQA Diamond）上，两种模式（“思考模式”和“非思考模式”）下的模型性能（Pass@1）如何随“思考预算”（Thinking Budget，以K tokens为单位）的变化而变化。
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-27-Qwen3-235B-A22B随thinking budget的性能表现.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-27-Qwen3-235B-A22B随thinking budget的性能表现.png" />
    <p>图14.27 Qwen3-235B-A22B随thinking budget的性能表现</p>
 </div>
 
@@ -1060,7 +1060,7 @@ Qwen3 的后训练流程精心设计了两个核心目标：
 下图展示了 Qwen3-32B 模型在不同后训练阶段（Post-training）的性能变化：
 
 <div align="center">
-   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter14/images/14-28-Qwen3-32B在不同阶段的性能.png" />
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter14/images/14-28-Qwen3-32B在不同阶段的性能.png" />
    <p>图14.28 Qwen3-32B在不同阶段的性能</p>
 </div>
 
