@@ -127,7 +127,7 @@ CS336-Chinese-co-construction/
 
 ### PDF 版本下载
 
-本教程提供 PDF 版本，方便离线阅读和打印学习。
+本教程提供 PDF 版本，方便离线阅读和打印学习。为防止各类营销号加水印后贩卖给 LLM 的读者，我们特地在 PDF 文件中添加了不影响阅读的 Datawhale 开源标志水印，敬请谅解～
 
 > 📥 **Diy-LLM 课程讲义 PDF**: [https://github.com/datawhalechina/diy-llm/releases/latest/](https://github.com/datawhalechina/diy-llm/releases/latest/)
 
