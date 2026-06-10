@@ -128,6 +128,12 @@ diy-llm/
 └── .gitignore              # Git忽略配置
 ```
 
+### PDF 版本下载
+
+本教程提供 PDF 版本，方便离线阅读和打印学习。
+
+> 📥 **Diy-LLM 课程讲义 PDF**: [https://github.com/datawhalechina/diy-llm/releases/latest/](https://github.com/datawhalechina/diy-llm/releases/latest/)
+
 ## 🔗 相关链接
 
 - **仓库地址**：https://github.com/datawhalechina/diy-llm
