@@ -591,16 +591,16 @@ ARC-AGI-1:
 
 <div align="center">
    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter12/images/12-41-Clip使用语言模型分析真实用户数据.png" />
-   <p>图12.41 Clip使用语言模型分析真实用户数据</p>
+   <p>图12.41 Clio 使用语言模型分析真实用户数据</p>
 </div>
 
 ### MedHELM
 
-为解决此问题，出现了如 [MedHELM](https://arxiv.org/abs/2412.13678) 这样的基准，它由 29 名临床医生贡献了 121 个真实的临床任务，更贴近实际医疗应用场景。然而，真实性与隐私之间存在天然矛盾，许多真实数据（如患者病历）无法公开。
+为解决此问题，出现了如 [MedHELM](https://arxiv.org/abs/2505.23802) 这样的基准，它由 29 名临床医生贡献了 121 个真实的临床任务，更贴近实际医疗应用场景。然而，真实性与隐私之间存在天然矛盾，许多真实数据（如患者病历）无法公开。
 
 <div align="center">
    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter12/images/12-42-MedHELM构建流程.png" />
-   <p>图12.42 Clip使用语言模型分析真实用户数据</p>
+   <p>图12.42 MedHELM 构建流程</p>
 </div>
 
 ## 12.10 有效性 
