@@ -1,20 +1,172 @@
-# 第五章 注意力机制替代方案与混合专家模型
+# 第五章 注意力的改进方案
 
-&emsp;&emsp; 专家混合模型（MoE）是当前LLM领域中一项至关重要的技术，它有效地解决了模型规模与计算成本之间的矛盾。这种机制允许模型在不显著增加计算量（FLOPs）的前提下，大幅扩展其总参数规模和表达能力，从而实现了模型容量（参数数量）与计算效率之间的动态平衡。
+&emsp;&emsp;自 2017 年《Attention Is All You Need》提出以来，Transformer 逐渐成为现代大语言模型的核心机制。但随着参数规模与上下文窗口持续扩展，原始 Transformer 架构在计算复杂度、显存开销和模型容量上的瓶颈日益突出。为此，近年研究主要围绕两条路线展开：
 
-&emsp;&emsp; DeepSeek、Kimi、Qwen、GLM、Mimo等开源模型都采用了MoE架构。然而，MoE在实际应用中会有负载均衡、跨设备并行、训练不稳定和路由机制设计等工程挑战。接下来，我们将剖析MoE的核心概念、工作原理以及实际应用，并提供解决这些工程挑战的实用思路，旨在以更高的计算效率，正确应用这一机制来扩展LLM的能力。
+- **扩展上下文处理能力**：在有限资源下高效处理更长序列。代表工作包括：[FlashAttention 优化 Attention Kernel 提升 GPU 利用率、PagedAttention 改进 KV Cache 内存管理](https://datawhalechina.github.io/diy-llm/chapter6/chapter6_%E7%AC%AC%E5%85%AD%E7%AB%A0GPU%E5%92%8CGPU%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BC%98%E5%8C%96.html)、MLA压缩 Key-Value 表示降低缓存开销以及 Hybrid Attention 兼顾计算效率与建模能力。其共同目标是降低长上下文带来的计算与存储代价，同时缓解性能退化。
+- **扩展模型容量**：在计算量基本不变的前提下提升表达能力。MoE通过动态路由仅激活少量专家参与计算，以近乎恒定的 FLOPs 大幅扩展参数规模，已成为主流大模型的关键架构选择。
 
-# 本小节的学习目标
+当前 Agent、长上下文推理、复杂 Tool Use 等场景对模型同时提出了长上下文建模与高效推理的双重要求，推动了上述两条路线的持续演进，也催生了 Harness、外部记忆 等新的能力扩展方向。
 
-1. 理解什么是MoE机制、其基本原理、以及它如何解决大模型训练中的哪些关键的问题？
-2. 辨析MoE中的三种主流路由方式（Top-K的TC/EC、哈希路由），能在原理、优缺点和适用场景角度加以对比和说明各自的核心思路是什么？
-3. 掌握MoE在LLM中的实际应用方法，并能阐述在应用过程中可能遇到的专家负载不均、知识混合等主要挑战及现有缓解办法？
+&emsp;&emsp;本章聚焦于 Attention 机制层面的改进，即 Attention Alternatives。我们将从经典的 Attention 出发，系统介绍各类注意力变体的设计思想与核心原理，并从计算效率、显存开销、适用场景等维度加以对比分析。
 
-*带着这几个疑问，我们继续接下来的学习！*
+# 学习目标
 
-## 5.1 分析MoE
 
-&emsp;&emsp;混合专家模型通过将原本的单一前馈网络（如MLP/FFN）替换为由多个并行子网络组成的专家集合，并通过路由机制在每次计算中仅激活少数专家。其核心思想是：模型总体包含大规模参数，但每个输入只使用其中一小部分专家，使得**容量大但计算稀疏**。
+&emsp;1.在LLM架构层面，有哪些具体技术（如注意力机制变体、位置编码改进、KV Cache优化 等）可用于扩展上下文窗口长度？
+
+&emsp;2.解释 MoE 的基本概念与运行机制包括门控网络、稀疏激活等关键环节，并阐述该架构主要解决了大模型训练和推理中的哪些瓶颈问题（例如计算成本、模型扩展性等）?
+
+&emsp;3.为什么 MoE 架构能在实际应用中有效提升模型性能，其高效性背后的根本原因是什么？
+
+*带着这几个疑问，我们继续接下来的分析！*
+
+## 5.1 Attention的改进方法
+
+
+
+<div align="center">
+<img width="470" height="447" alt="image" src="https://github.com/user-attachments/assets/58bd5958-ba12-4522-bc73-6c14911fae30" />
+   <p> Attention处理时间与上下文长度的关系</p>
+ </div>
+
+&emsp;&emsp;  随着处理的上下文长度增加，标准Attention 机制面临多重瓶颈：
+- 注意力分数矩阵的计算与存储随序列长度（ Attention复杂度 为 $n^{2}d$ ）呈二次增长，同时 KV Cache 随上下文**线性**累积，两者共同加剧显存压力，导致计算处理速度急剧下降；
+- 注意力分数在长距离上的分散与位置编码的外推漂移，使模型对长文本的建模能力逐渐衰减——这一现象在层数更深的模型中尤为突出。
+
+为缓解上述问题，研究者们从注意力机制本身出发，提出了多种结构变体与高效近似方法。
+
+### 5.1.1 Hybrid Attention
+
+&emsp;&emsp;对于提到的第一个问题，我们首先从标准 Attention 的计算原理及其复杂度出发，分析二次增长关系的根源。假设隐藏层的维度为 $d$ ，序列长度为 $n$ ，对于一个 Transformer 层，计算处理的主要流程为 $\operatorname{Softmax}\left(\dfrac{QK^\top}{\sqrt{d}}\right)V$  -> MLP，那么对应的时间复杂度为：
+
+$$O(n^{2}d + n^{2} + n^{2}d) \approx O(n^{2}d)$$
+
+&emsp;&emsp;因此，标准 Attention 的计算量会随上下文序列长度呈二次增长。那么线性注意力机制（如 Mamba、RNN 等模型）的情况如何呢？其核心思想是将历史信息压缩到一个固定大小的隐藏状态中进行递推：
+
+$$S_{t}=S_{t-1}+k_tv_{t}^{T}, \quad y_t=W_{t}S_{t}$$
+
+其中，$S_{t-1}$ 表示截至第 $t-1$ 时刻的隐藏状态压缩，$y_t$ 表示 $t$ 时刻的输出。其推理时的时间复杂度为：
+
+$$O(nd)$$
+
+&emsp;&emsp;从推理效率的角度进一步对比两者：标准 Attention 在推理时为了尽可能地减少重复计算，需要逐层累积 KV Cache，其显存占用随上下文长度**线性增长**（每个新 token 增加一对 KV 向量），当处理序列长度很大时这仍是沉重的负担；而线性注意力机制的**隐藏状态大小是固定的** ，推理时显存占用为**常数级**，*对长序列推理非常友好*。
+
+&emsp;&emsp;既然线性注意力机制在推理效率上优势明显，为什么部分的 LLM 仍然以标准 Attention 为主呢？主要原因有两点：
+
+- **训练效率**：标准 Attention 可以通过矩阵并行计算一次性处理整个序列，硬件利用率极高；线性注意力机制虽然可以通过并行扫描等技术加速训练，但在当前 硬件架构 上的并行效率和吞吐量相较于 标准Attention 仍有差距。
+- **表达能力**：标准 Attention 能对序列中任意两个 token 进行精确的全局交互，信息损失较少；线性注意力机制将所有历史压缩为固定大小的状态，不可避免地会丢失细粒度的上下文信息，在需要更多精确的回忆（比如复杂推理、长距离事实检索）的任务上表现较弱。
+
+&emsp;&emsp;简而言之，标准 Attention 表达能力强，线性注意力机制推理效率高。一个自然的想法是——能否将两者结合，在保持足够语义理解能力的同时大幅提升推理效率？事实上，已有研究沿着这个方向展开了探索，即 Hybrid Attention：在模型的部分层使用标准 Attention 以保留全局精确交互能力，在其余层使用线性注意力机制以降低整体计算和显存开销。
+
+
+---
+
+#### 开源模型中的混合注意力机制
+
+**1.Nemotron 3 Super**
+
+
+&emsp;&emsp;MiniMax M1 算得上是较早采用 Hybrid Attention 的开源大模型，但此后相当一段时间内，大部分 LLM 团队并未在核心架构中引入线性注意力机制。近期，这一思路重新受到关注，例如 Nemotron 3 Super、Kimi K3 等模型相继采用了 Hybrid Attention。
+
+<div align="center">
+<img width="527" height="767" alt="image" src="https://github.com/user-attachments/assets/d6d19c2e-ae13-4494-8a58-69ae821c384b" />
+   <p>Nemotron 3 Super (120B-A12B)</p>
+ </div>
+
+
+&emsp;&emsp;Nemotron 3 Super 采用了 Mamba 与标准 Attention 交替组合的架构：Mamba 层负责高效的序列建模，以线性复杂度处理长距离依赖；标准 Attention层 则补齐线性注意力机制在精确全局交互上的不足。两者相互配合，在保持推理效率的同时提升了整体的语义建模能力。
+
+**2.KDA**
+
+&emsp;&emsp;与 Nemotron 团队直接组合现有模块的方案不同，Kimi 团队提出了 KDA ，在线性注意力的递推公式中引入 $\text{Diag}(\alpha_{t})$ 对隐藏状态施加逐维度的衰减控制，从而更细粒度地管理对历史信息的遗忘与保留，同时增强对序列位置关系的感知能力。
+
+
+<div align="center">
+<img width="855" height="372" alt="image" src="https://github.com/user-attachments/assets/f33e459d-449b-487b-8bcc-192c9003d0b0" />
+   <p>KDA</p>
+ </div>
+
+对应的原理表示为：
+
+$$S_t=(\mathbb I - \beta k_t k_{t}^T)Diag(\alpha_{t})S_{t-1}+\beta k_t v_{t}^T$$
+
+
+<div align="center">
+<img width="855" height="372" alt="image" src="https://github.com/user-attachments/assets/6142dada-4d8f-48c8-bd2c-363197704722" />
+   <p>KDA的公式原理可视化</p>
+ </div>
+
+&emsp;&emsp;KDA是一种线性注意力机制，其核心思想是在 Gated DeltaNet 的基础上，引入了按不同隐藏维度的可学习遗忘机制（Diag( $\alpha_t$ )）。在 GDN 中，所有隐藏维度共享同一个可学习的遗忘系数，因此不同维度会以相同的速度衰减历史信息；而 KDA 则将这一遗忘系数扩展为一个向量，即为每个隐藏维度分别学习独立的遗忘率，使不同维度能够根据训练数据自动决定保留多少历史信息、遗忘多少历史信息，从而显著提高了记忆表示的灵活性。
+
+&emsp;&emsp;Kimi 团队认为，这一设计与 RoPE 的思想具有一定的相似性。RoPE 的优势不仅在于引入了旋转位置编码，更重要的是不同隐藏维度对应不同的旋转频率，从而能够自然地表示不同时间尺度的位置关系。
+
+&emsp;&emsp;此外，在 Kimi Linear 的整体架构设计中，通过大量实验发现，在其模型配置下，**线性注意力层与标准 Softmax Attention 层约为 3:1 的混合比例**时，可以在模型性能与计算效率之间取得较好的平衡。不过需要注意的是，这一比例可能会受到模型规模、网络结构、训练策略以及硬件平台等因素的影响，并不意味着所有模型都存在统一的最佳比例。在不同架构或训练条件下，该比例仍需要根据具体实验进行调整。
+
+
+&emsp;&emsp;当然，采用 Hybrid Attention 的大模型不止上述的，还有许多其他模型也在探索类似的架构方案。以及还有其他 Attention 的改进方法。
+
+---
+
+
+### 5.1.2 DeepSeek Sparse Attention
+
+&emsp;&emsp;与 Hybrid Attention 通过替换部分层的注意力机制来降低整体复杂度不同，DeepSeek 团队提出了另一种思路：在 标准Attention 计算之前引入轻量级索引器，预测每个 Query 最值得关注的少量 Key Token，仅对这些候选 Token 执行完整的 Attention 计算，从而将计算量从全局 $O(n^2)$ 降低到近似 $O(n \cdot k)$（$k \ll n$）。
+
+<div align="center">
+<img width="1185" height="726" alt="image" src="https://github.com/user-attachments/assets/e4afd350-ef53-440c-a80c-d9b0eaa5a9bb" />
+   <p>DSA</p>
+ </div>
+
+
+&emsp;&emsp;具体而言，对于输入的 Query 和 Key，轻量级索引器首先计算每个 Key Token 相对于 Query 的相关性分数：
+
+$$
+S = f(Q, K)
+$$
+
+其中， $f(\cdot)$ 为轻量级索引函数，其计算成本远低于 标准Attention。随后，根据相关性分数选取前 $k$ 个最相关的候选token，得到候选集合：
+
+$$
+\mathcal{C} = \operatorname{TopK}(S, k)
+$$
+
+最后，仅在候选集合 $\mathcal{C}$ 上执行标准 Scaled Dot-Product Attention：
+
+$$
+\operatorname{Attention}(Q, K_{\mathcal{C}}, V_{\mathcal{C}}) = \operatorname{Softmax}\left(\frac{QK_{\mathcal{C}}^{T}}{\sqrt{d}}\right) V_{\mathcal{C}}
+$$
+
+&emsp;&emsp;由于完整 Attention 仅发生在少量候选 token 上，计算复杂度相比全局注意力显著降低，同时通过选取最相关的Token，能够较好地保留模型的表达能力。
+
+
+&emsp;&emsp;在训练策略上，DSA 采用两阶段训练方式：
+
+&emsp;①第一阶段使用较短上下文并采用标准 Attention 进行预训练，使模型充分学习基础语言建模能力。第二阶段则在第一阶段模型参数的基础上引入轻量级索引器，并切换至长上下文继续训练，使模型逐步适应稀疏注意力计算模式，同时学习有效的 候选token 选择策略。
+
+&emsp;②为减少索引器随机初始化对模型性能造成较大影响，在第二阶段开始时，通常先冰冻住主模型参数，仅优化索引器，*并以 标准Attention 的注意力分布作为教师信号*，通过 **KL散度** 损失对齐稀疏注意力与标准注意力的分布，即
+
+$$
+\mathcal{L}=
+D_{KL}\left(
+P_{\mathrm{Dense}}
+\parallel
+P_{\mathrm{Sparse}}
+\right),
+$$
+
+其中， $P_{\mathrm{Dense}}$ 表示 标准Attention 的注意力分布， $P_{\mathrm{Sparse}}$ 表示 稀疏Attention 的注意力分布。完成索引器的初步对齐后，再解除参数冻结，对索引器与主模型进行联合优化，使模型能够在保持原有语言建模能力的同时，进一步提升稀疏注意力的表示能力和长上下文建模能力。
+
+
+&emsp;&emsp;采用分阶段训练而非直接联合训练的主要原因在于，语言建模和稀疏索引学习属于两个优化目标。如果从训练初期同时优化二者，随机初始化的索引器可能无法有效筛选候选token，从而很可能破坏注意力计算过程，影响模型基础语言能力的学习。通过先学习语言表示、再逐步引入并优化稀疏索引器，可以降低训练难度，提高训练稳定性，并获得更好的最终表现能力。
+
+&emsp;&emsp;除了对 Attention 模块进行优化之外，近年来研究者也开始关注 Transformer 中另一核心组件——FFN的改进。相比于 Attention 负责建模 token 之间的交互关系，FFN主要承担特征变换和知识存储的作用，其参数量通常占据 Transformer 的较大比例。
+
+&emsp;&emsp;近年来，越来越多的大语言模型采用了 MoE 架构，通过将原本的稠密 MLP 替换为稀疏激活的专家网络，在保持计算成本基本不变的情况下显著扩大模型参数规模。接下来，我们将分析 MoE 的基本原理、核心组成以及其在一些 LLM 中的应用。
+
+
+## 5.2 MoE原理分析
+
+&emsp;&emsp;MoE是一种稀疏激活架构，其基本思想是将 Transformer 中原本的单一FFN 替换为多个并行的专家网络（Experts），并引入一个路由器来决定每个输入 token 应该由哪些专家进行处理。在一次前向传播过程中，每个 token 通常只会激活少量专家（如 Top-1 或 Top-2），其余专家保持不参与计算。因此，虽然整个模型拥有庞大的参数规模，但每次计算仅激活其中一小部分参数，从而实现了模型容量大、计算开销相对较低的特点。
 
 >&emsp;&emsp;**值得注意的是**——多数研究表明，MoE架构在参数规模较大、数据和计算资源充足时优势最为明显；在小规模或资源受限的环境下，其表现可能不如对应的稠密（Dense）模型，具体效果还取决于任务类型、数据量以及实现细节。
 
@@ -23,7 +175,7 @@
 
 ---
 
-### 5.1.1 路由机制与负载均衡
+### 5.2.1 路由机制与负载均衡
 
 &emsp;&emsp;在MoE模型中，路由机制也称门控机制负责在每次前向传播时从全部专家中选择少量专家参与计算。当前主流的路由方式是基于可学习门控得分的`Top-K`路由，并在此基础上衍生出两种执行策略：`TC`与`EC`，两者都需要依赖可学习的门控得分机制，并通常会配合负载均衡策略以避免专家不均衡。
 
@@ -47,7 +199,7 @@ $$
 
 <div align="center">
 <img width="1000" height="520" alt="c5b3cdd83a238e8a6484d51975277f8a" src="https://github.com/user-attachments/assets/648d1892-b01e-4d40-9c2b-50478d2eeccf" />
-   <p>图5.1 词元选择模式</p>
+   <p>词元选择模式</p>
  </div>
 
 - `TC`中 $W_g$ ：在打分步骤中，它可以理解为一个 “专家特长档案”。它将token的隐藏特征映射到专家集合的能力空间，并告诉token不同专家分别擅长什么语义，每个token会根据与各个专家“特长档案”的匹配程度，主动挑选最适合处理自己的Top-K专家。
@@ -279,7 +431,7 @@ EC_MoE(dim=32, num_experts=10, k=2)，输入文本：
 
 <div align="center">  
 <img width="800" height="480" alt="image" src="https://github.com/user-attachments/assets/e5b160fb-1410-418d-aa48-f790095a5f01" />
-   <p>图5.3 哈希路由</p>
+   <p>哈希路由</p>
  </div>
 
 
@@ -435,7 +587,7 @@ if __name__ == "__main__":
 
 ---
 
-### 5.1.2 MoE变体
+### 5.2.2 MoE变体
 
 在混合专家模型MoE里，每个专家就像一位“老师”，负责处理输入的一部分（token）。然而在实际训练中，有两个常见问题会阻碍专家真正形成“专业领域”：
 1. **知识混合**：分配给某个专家的token可能多样化即涵盖多种不同类型的知识。就像一位老师被要求同时教数学、历史和美术，他很难在自己的课堂上把每门课都讲得透彻。
@@ -463,7 +615,7 @@ if __name__ == "__main__":
      
 <div align="center">  
 <img width="1200" height="600" alt="c7b2879ba70391b9e340c9c062a232b2" src="https://github.com/user-attachments/assets/33892936-0c5c-4743-8047-6e65d9d85401" />
-   <p>图5.6 Switch Transformer</p>
+   <p>Switch Transformer</p>
  </div>
 
 
@@ -487,7 +639,7 @@ if __name__ == "__main__":
 
 ---
 
-### 5.1.3 混合专家与稠密模型
+### 5.2.3 混合专家与稠密模型
 
 &emsp;&emsp;MoE相较于传统稠密模型的优势是它可以**扩大模型参数规模的同时保持计算量基本不变**，从而显著提升模型的表示能力与性能；并且由于MoE的专家是**稀疏激活**的，每次仅有少量专家参与计算，因此各专家*通常是前馈网络*可以作为独立模块分布在不同设备上。路由器只需根据输入将对应的token发送到相应设备，计算便在该专家所在设备上独立完成。这种天然的结构切分方式使MoE能实现高效的**专家级并行**，成为构建超大规模模型时必不可少的并行化策略，也是现代大模型在多机多卡环境下突破容量与性能瓶颈的重要基础。
 
@@ -534,9 +686,11 @@ if __name__ == "__main__":
 
 ---
 
-### 5.2.1 MoE与LLM
+### 5.3.1 MoE与LLM
+
 &emsp;&emsp;在LLM中，MoE通常通过引入一个路由器以及将Transformer中的单个前馈网络板块替换或扩展为由多个独立专家组成的稀疏子网络。每个token在前向与反向传播中仅激活少量专家，使模型能够在不显著增加每次计算量的前提下大幅提升参数容量与表示能力。
-### 5.2.2 简易MoE+LLM实现
+
+### 5.3.2 简易MoE+LLM实现
 
 **第一步：构建字节级分词器**
 ```python
@@ -887,14 +1041,14 @@ class MiniMoELLModel(nn.Module):
 
 ---
 
-## 5.3 DeepSeek的创新
+## 5.4 DeepSeek的创新
 
-### 5.3.1 DeepSeek V3的创新关键点
+### 5.4.1 DeepSeek V3的创新关键点
 &emsp;&emsp;DeepSeekMoE一种创新的专家混合模型，其目标是实现**极致的专家专业化**，以解决传统MoE模型中存在的**知识混合**和**知识重复**问题，从而在保持计算成本适中的同时，极大地提升模型性能和参数效率。`DeepSeekMoE`的架构主要通过以下两个策略来实现专家专业化：
    
 <div align="center">
 <img width="1350" height="600" alt="image" src="https://github.com/user-attachments/assets/6aab083e-c9b6-48a2-9f7d-28d833c7860a" />
-   <p>图5.4 DeepSeekMoE结构示意图</p>
+   <p>DeepSeekMoE结构示意图</p>
  </div>
 
 - **细粒度专家分割**：在保持专家参数总量不变的前提下，把原来的“较大”FFN专家按比例缩小例如每个小专家为标准FFN参数量的0.25倍，并将每个原专家分割成若干个更小的专家，从而显著增加总体专家个数即将 $N$ 个专家扩展为 $mN$ 个小专家。这种做法把模型的参数密度从“每个专家更大”转向“更多但更小的专家”，为专家间更细致的分工提供可能。
@@ -909,7 +1063,7 @@ class MiniMoELLModel(nn.Module):
 
 <div align="center">  
    <img width="1275" height="543" alt="image" src="https://github.com/user-attachments/assets/d4f713ba-e9c5-4d57-95cd-82a914610828" />
-   <p>图5.5 总参数和激活参数的数量相同的对比实验</p>
+   <p>总参数和激活参数的数量相同的对比实验</p>
  </div>
 
 &emsp;&emsp;在保持总参数量和激活参数量恒定的实验中，逐步把专家拆得更小，确实可以提升模型性能。不过，随着专家越来越细化，性能增益会逐渐减缓，而且通信开销、路由稳定性等工程因素的影响程度会开始变大，也就是说性能提升不是无限的。[论文](https://arxiv.org/pdf/2401.06066)的消融实验也提供了一个经验：**当共享专家和激活的领域化专家保持大约1:3的比例时，在基准任务上效果最好**。
@@ -926,7 +1080,7 @@ class MiniMoELLModel(nn.Module):
 
 ---
 
-### 5.3.2 DeepSeek V4的改进
+### 5.4.2 DeepSeek V4的改进
 
 &emsp;&emsp;面对浅层的MoE架构，训练极其不稳定的情况，DeepSeek V3、Mimo等开源模型选择把浅层换成Dense FFN层来为后续可学习路由的MoE层提供稳定输入，而[DeepSeek V4则直接在浅层引入了3层Hash MoE（非学习路由）替代以往Dense层](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)。这在一定程度上缓解了这个问题。
 
@@ -945,7 +1099,7 @@ class MiniMoELLModel(nn.Module):
 >DeepSeek团队，对于改善MoE模型的训练稳定性这种技术，尚未形成完整的理论基础，仅实际应用中得到了有效的验证。后续社区可以进一步研究这方面的问题。
 
 
-## 5.4 MoE与深度学习
+## 5.5 MoE与深度学习
 
 **基础层级特征抽取与传统分工**
 
@@ -980,15 +1134,15 @@ class MiniMoELLModel(nn.Module):
 
 > 这些结论基于Kimi-K2和特定任务，具有工程环境依赖，在其他模型或任务中，效果可能有所不同，需要复现验证。
 
-## 5.5 MoE的学习总结
+## 5.6 MoE的学习总结
 
-&emsp;&emsp;**本节系统梳理了MoE模型的核心原理与主流路由机制**，并分析了其在大规模训练中面临的稳定性挑战。结合前沿大语言模型的实践，我们重点探讨了如何从**架构设计**（如DeepSeek V4的Hash MoE与前瞻路由）与**训练策略**（如SwiGLU钳制）两方面，有效提升MoE模型的训练效率。
+&emsp;&emsp;**本节梳理了关于 标准Attention 的改进、MoE的核心原理与主流路由机制**，并分析了其在大规模训练中面临的稳定性挑战。结合前沿大语言模型的实践，我们探讨了如何从**架构设计**（如DeepSeek V4的Hash MoE与前瞻路由）与**训练策略**（如SwiGLU钳制）两方面，有效提升MoE模型的训练效率。以及最近，MoE 进一步发展出现嘞 Kimi K3、Nemotron 3的 LatentMoE。 
 
 ## 思考
 
 **基础思考问题**
 
-1）MoE架构模型中，采用的路由机制有哪些，对应的原理是什么？
+1）目前 标准Attention 的改进以及其对应的原理是什么？
 
 2）改进MoE中负载不均衡、训练不稳定的方法有哪些？
 
@@ -1009,3 +1163,5 @@ class MiniMoELLModel(nn.Module):
 - [减少计算消耗的万亿参数MoE调优](https://macaron.im/mindlab/research/building-trillion-parameter-reasoning-rl-with-10-gpus)
 - [DeepSeek-MoE](https://arxiv.org/pdf/2401.06066)
 - [DeepSeek-V3](https://arxiv.org/pdf/2412.19437)
+- [Kimi研究的KDA架构](https://arxiv.org/pdf/2510.26692v2)
+- [Nemotron 3 Super 120B A12B](https://arxiv.org/abs/2604.12374)
