@@ -1136,7 +1136,7 @@ class MiniMoELLModel(nn.Module):
 
 ## 5.6 MoE的学习总结
 
-&emsp;&emsp;**本节梳理了关于 标准Attention 的改进、MoE的核心原理与主流路由机制**，并分析了其在大规模训练中面临的稳定性挑战。结合前沿大语言模型的实践，我们探讨了如何从**架构设计**（如DeepSeek V4的Hash MoE与前瞻路由）与**训练策略**（如SwiGLU钳制）两方面，有效提升MoE模型的训练效率。以及最近，MoE 进一步发展出现嘞 Kimi K3、Nemotron 3的 LatentMoE。 
+&emsp;&emsp;**本节梳理了关于 标准Attention 的改进、MoE的核心原理与主流路由机制**，并分析了其在大规模训练中面临的稳定性挑战。结合前沿大语言模型的实践，我们探讨了如何从**架构设计**（如DeepSeek V4的Hash MoE与前瞻路由）与**训练策略**（如SwiGLU钳制）两方面，有效提升MoE模型的训练效率。以及最近，MoE 进一步发展出现了 Kimi K3、Nemotron 3的 LatentMoE。 
 
 ## 思考
 
