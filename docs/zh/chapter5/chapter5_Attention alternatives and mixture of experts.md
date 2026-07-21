@@ -37,7 +37,7 @@
 
 ### 5.1.1 Hybrid Attention
 
-&emsp;&emsp;对于提到的第一个问题，我们首先从标准 Attention 的计算原理及其复杂度出发，分析二次增长关系的根源。假设隐藏层的维度为 $d$ ，序列长度为 $n$ ，对于一个 Transformer 层，计算处理的主要流程为 $\operatorname{Softmax}\left(\dfrac{QK^\top}{\sqrt{d}}\right)V$  -> MLP，那么对应的时间复杂度为：
+&emsp;&emsp;对于提到的第一个问题，我们首先从标准 Attention 的计算原理及其复杂度出发，分析二次增长关系的根源。假设隐藏层的维度为 $d$ ，序列长度为 $n$ ，对于一个 Transformer 层，计算处理的主要流程为   $Softmax\left(\dfrac{QK^\top}{\sqrt{d}}\right)V$  -> MLP，那么对应的时间复杂度为：
 
 $$O(n^{2}d + n^{2} + n^{2}d) \approx O(n^{2}d)$$
 
