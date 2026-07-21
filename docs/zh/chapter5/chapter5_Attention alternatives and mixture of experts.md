@@ -5,7 +5,7 @@
 - **扩展上下文处理能力**：在有限资源下高效处理更长序列。代表工作包括：[FlashAttention 优化 Attention Kernel 提升 GPU 利用率、PagedAttention 改进 KV Cache 内存管理](https://datawhalechina.github.io/diy-llm/chapter6/chapter6_%E7%AC%AC%E5%85%AD%E7%AB%A0GPU%E5%92%8CGPU%E7%9B%B8%E5%85%B3%E7%9A%84%E4%BC%98%E5%8C%96.html)、MLA压缩 Key-Value 表示降低缓存开销以及 Hybrid Attention 兼顾计算效率与建模能力。其共同目标是降低长上下文带来的计算与存储代价，同时缓解性能退化。
 - **扩展模型容量**：在计算量基本不变的前提下提升表达能力。MoE通过动态路由仅激活少量专家参与计算，以近乎恒定的 FLOPs 大幅扩展参数规模，已成为主流大模型的关键架构选择。
 
-当前 Agent、长上下文推理、复杂 Tool Use 等场景对模型同时提出了长上下文建模与高效推理的双重要求，推动了上述两条路线的持续演进，也催生了 Harness、外部记忆 等新的能力扩展方向。
+当前 Agent、长上下文推理、复杂 Tool Use 等场景对模型同时提出了长上下文建模与高效推理的双重要求，推动了上述两条路线的持续演进，也出现了 Harness、外部记忆 等新的能力扩展方向。
 
 &emsp;&emsp;本章聚焦于 Attention 机制层面的改进，即 Attention Alternatives。我们将从经典的 Attention 出发，系统介绍各类注意力变体的设计思想与核心原理，并从计算效率、显存开销、适用场景等维度加以对比分析。
 
@@ -37,7 +37,7 @@
 
 ### 5.1.1 Hybrid Attention
 
-&emsp;&emsp;对于提到的第一个问题，我们首先从标准 Attention 的计算原理及其复杂度出发，分析二次增长关系的根源。假设隐藏层的维度为 $d$ ，序列长度为 $n$ ，对于一个 Transformer 层，计算处理的主要流程为   $Softmax\left(\dfrac{QK^\top}{\sqrt{d}}\right)V$  -> MLP，那么对应的时间复杂度为：
+&emsp;&emsp;对于提到的第一个问题，我们首先从标准 Attention 的计算原理及其复杂度出发，分析二次增长关系的根源。假设隐藏层的维度为 $d$ ，序列长度为 $n$ ，对于一个 Transformer 层，计算处理的主要流程为   $\text{Softmax}\left(\dfrac{QK^\top}{\sqrt{d}}\right)V$  -> MLP，那么对应的时间复杂度为：
 
 $$O(n^{2}d + n^{2} + n^{2}d) \approx O(n^{2}d)$$
 
@@ -45,7 +45,7 @@ $$O(n^{2}d + n^{2} + n^{2}d) \approx O(n^{2}d)$$
 
 $$S_{t}=S_{t-1}+k_tv_{t}^{T}, \quad y_t=W_{t}S_{t}$$
 
-其中，$S_{t-1}$ 表示截至第 $t-1$ 时刻的隐藏状态压缩，$y_t$ 表示 $t$ 时刻的输出。其推理时的时间复杂度为：
+其中， $S_{t-1}$ 表示截至第 $t-1$ 时刻的隐藏状态压缩， $y_t$ 表示 $t$ 时刻的输出。其推理时的时间复杂度为：
 
 $$O(nd)$$
 
@@ -110,7 +110,7 @@ $$S_t=(\mathbb I - \beta k_t k_{t}^T)Diag(\alpha_{t})S_{t-1}+\beta k_t v_{t}^T$$
 
 ### 5.1.2 DeepSeek Sparse Attention
 
-&emsp;&emsp;与 Hybrid Attention 通过替换部分层的注意力机制来降低整体复杂度不同，DeepSeek 团队提出了另一种思路：在 标准Attention 计算之前引入轻量级索引器，预测每个 Query 最值得关注的少量 Key Token，仅对这些候选 Token 执行完整的 Attention 计算，从而将计算量从全局 $O(n^2)$ 降低到近似 $O(n \cdot k)$（$k \ll n$）。
+&emsp;&emsp;与 Hybrid Attention 通过替换部分层的注意力机制来降低整体复杂度不同，DeepSeek 团队提出了另一种思路：在 标准Attention 计算之前引入轻量级索引器，预测每个 Query 最值得关注的少量 Key Token，仅对这些候选 Token 执行完整的 Attention 计算，从而将计算量从全局 $O(n^2)$ 降低到近似 $O(n \cdot k)$ （ $k \ll n$ ）。
 
 <div align="center">
 <img width="1185" height="726" alt="image" src="https://github.com/user-attachments/assets/e4afd350-ef53-440c-a80c-d9b0eaa5a9bb" />
@@ -127,13 +127,13 @@ $$
 其中， $f(\cdot)$ 为轻量级索引函数，其计算成本远低于 标准Attention。随后，根据相关性分数选取前 $k$ 个最相关的候选token，得到候选集合：
 
 $$
-\mathcal{C} = \operatorname{TopK}(S, k)
+\mathcal{C} = \text{TopK}(S, k)
 $$
 
 最后，仅在候选集合 $\mathcal{C}$ 上执行标准 Scaled Dot-Product Attention：
 
 $$
-\operatorname{Attention}(Q, K_{\mathcal{C}}, V_{\mathcal{C}}) = \operatorname{Softmax}\left(\frac{QK_{\mathcal{C}}^{T}}{\sqrt{d}}\right) V_{\mathcal{C}}
+\text{Attention}(Q, K_{\mathcal{C}}, V_{\mathcal{C}}) = \text{Softmax}\left(\frac{QK_{\mathcal{C}}^{T}}{\sqrt{d}}\right) V_{\mathcal{C}}
 $$
 
 &emsp;&emsp;由于完整 Attention 仅发生在少量候选 token 上，计算复杂度相比全局注意力显著降低，同时通过选取最相关的Token，能够较好地保留模型的表达能力。
@@ -296,7 +296,7 @@ TC_MoE(dim=32, num_experts=10, k=2)，输入文本：
 
 <div align="center">
 <img width="1000" height="773" alt="1980610e1c138e069cd6fdcdc3b196a3" src="https://github.com/user-attachments/assets/d665c6bd-88be-4b35-9199-71dbfe74b9ba" />
-   <p>图5.2 专家选择模式</p>
+   <p>专家选择模式</p>
  </div>  
 
 - `EC`中 $W_g$ ：在打分步骤中，它可以理解为一个 “语义导航器”，将token的隐藏特征映射到每个专家的语义空间，并把这份导航信号提供给所有专家。每个专家会根据这份“导航信息”，主动挑选最符合自己能力范围的Top-K token进行处理。
@@ -1082,7 +1082,7 @@ class MiniMoELLModel(nn.Module):
 
 ### 5.4.2 DeepSeek V4的改进
 
-&emsp;&emsp;面对浅层的MoE架构，训练极其不稳定的情况，DeepSeek V3、Mimo等开源模型选择把浅层换成Dense FFN层来为后续可学习路由的MoE层提供稳定输入，而[DeepSeek V4则直接在浅层引入了3层Hash MoE（非学习路由）替代以往Dense层](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)。这在一定程度上缓解了这个问题。
+&emsp;&emsp;面对浅层的MoE架构，训练极其不稳定的情况，DeepSeek V3、Mimo等开源模型选择把浅层换成Dense FFN层来为后续可学习路由的MoE层提供稳定输入，而[DeepSeek V4则直接在浅层引入了3层Hash MoE（非学习路由）替代以往Dense层](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/config.json)，这在一定程度上缓解了这个问题。
 
 &emsp;&emsp;面对训练MoE时因训练数据量翻倍引发的严重不稳定性以及反复损失尖峰（Loss Spike），不再是简单的`回滚机制`可以解决的问题，DeepSeek V4引入了两种方法：
 
