@@ -1165,3 +1165,4 @@ class MiniMoELLModel(nn.Module):
 - [DeepSeek-V3](https://arxiv.org/pdf/2412.19437)
 - [Kimi研究的KDA架构](https://arxiv.org/pdf/2510.26692v2)
 - [Nemotron 3 Super 120B A12B](https://arxiv.org/abs/2604.12374)
+- [Kimi团队基于KDA实现的Kimi linear 48B A3B model](https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct/blob/main/modeling_kimi.py)
