@@ -22,13 +22,46 @@
 
 上一章讲过块（block）、线程束（warp）和线程（thread），这是粒度逐级细化的顺序。块是大型线程组，**每个块会被分配给一个SM处理**。可以把每个**SM想象成独立工作的单元，而块就是分配给它的处理单元**。在每个块内部**包含大量线程，每个线程代表待执行的任务单元**。这些线程在执行时会分组运行，这种分组称为线程束。每个线程束由32个连续编号的线程组成，从块中提取出来同步执行。
 
-warp本质上是一组共同执行的线程。warp存在的意义在于这些线程是同时执行的，不需要为每个线程单独配置控制单元，**只需每32个线程块配置**一个。所以计算单元的数量远多于warp调度器。这样就能在无需担心控制开销的情况下执行更多并行工作。这也是GPU与CPU的权衡之一：CPU会将更多硅片面积用于控制单元和分支预测等功能，而GPU则更侧重计算能力并采用更简化的控制机制。
+**块**
 
 **线程块**集合会被调度到单个SM上执行，这是我们在**Triton**等编程中需要重点考虑的基础单元。每个块内包含大量实际执行计算的**线程**。当需要对向量进行操作时让每个线程同时处理向量中多个元素的代码，**所有线程协同完成整个向量的处理**。所以我们会使用块而不是一个全局的上下文。
 
 使用块可以实现**高效通信**，因为线程块内可通过**SM中高速的共享内存进行数据交换**。例如矩阵乘法运算需要线程间传递数据时，**块内通信极快（相当于L1缓存一样快），而跨块通信则代价高昂**。因此应尽量将数据保持在同个线程块（或同个计算单元）内，这样就能获得高速性能。虽然可以通过线程块实现线程间同步，但无法跨块同步，也无法精确控制执行流程。因此我们要尽量避免跨块通信。
 
+**SM 流式处理器**
+
+以NVIDIA GPU为例（A100/H100/B200），各代GPU的SM数量约在100至200之间，变化不大。每个SM内部包含：
+
+- **寄存器文件**：B200每个SM有65,536个寄存器，总容量256 KB。这一数量在代际间也基本稳定。
+- **L1缓存 / 共享内存**：位于SM内部，大小与寄存器在同一数量级（约数百KB），其中共享内存可由程序员显式控制。
+- **L2缓存**：芯片级共享，容量比L1大（数十MB），所有SM均可访问。
+- **HBM（高带宽内存）**：容量巨大（数十GB），且代际增长最快，但访问延迟最高。
+
+带宽方面，基本呈**反比关系**：寄存器 > L1/共享内存 > L2 > HBM。HBM的带宽虽然最慢，但仍能达到TB/s级别（如8 TB/s）。关键结论：**大容量内存（HBM）慢但空间大，小容量内存（寄存器、L1）快但空间小**。
+
+共享内存被分成32个存储体（bank），每个bank 4字节宽。同一时钟周期内，**每个bank只能服务一个线程的访问**。若同一warp内的多个线程访问同一bank的不同地址，就会发生**存储体冲突（bank conflict）**，访问将被串行化。最坏情况是32路冲突（如32个线程同时访问同一列数据），性能严重下降。矩阵乘法的数据布局需要精心设计以规避此问题（可通过swizzling等技术缓解）。
+
+当warp中32个线程访问HBM时，若访问地址连续且在128字节的缓存行内，这些请求会被合并为一次内存事务（memory coalescing）。这大幅提高了带宽利用率。若线程访问地址离散（如按列访问），则会引发多次不必要的事务，导致有效带宽骤降。这一概念与存储体冲突类似，但作用在HBM层面。
+
+**warp线程束**
+
+warp本质上是一组共同执行的线程。warp存在的意义在于这些线程是同时执行的，不需要为每个线程单独配置控制单元，**只需每32个线程块配置**一个。所以计算单元的数量远多于warp调度器。这样就能在无需担心控制开销的情况下执行更多并行工作。这也是GPU与CPU的权衡之一：CPU会将更多硅片面积用于控制单元和分支预测等功能，而GPU则更侧重计算能力并采用更简化的控制机制。
+
+每个warp包含32个线程，同一warp内的所有线程**必须在同一时钟周期执行同一条指令**（锁步执行）。如果代码中出现分支（例如`if cond: A else: B`），且warp内不同线程的条件结果不同，则这些线程无法同时执行A和B。此时硬件会串行执行两条路径：先让部分线程执行A（其余线程等待），再让剩余线程执行B。这种 **控制发散（control divergence）** 会大幅降低并行效率，因此GPU编程中应尽量避免分支。
+
+当warp执行高延迟操作（如从HBM读取数据，可能需要数百个周期）时，SM的warp调度器会立即切换到另一个已就绪的warp，而无需任何额外开销。这意味着**SM可以通过并发运行多个warp来隐藏内存延迟**。只要有足够多的warp可供切换，计算单元就能保持忙碌。这也是GPU需要海量线程的根本原因之一。
+
 实际运行时，**线程会被分组为连续的32线程单元（warp）**，在SM中批量执行。因此**应尽量确保**所有Warp的计算负载均衡，理想情况下**线程块数量应远多于SM数量**，且最好能被SM数量整除，这样才能**保证每个Warp的工作量均衡**（每个sm都有自己的块要处理，而不是闲置）。经验上块的数量应该大于四倍的SM的数量。
+
+**占用率与寄存器压力**
+
+每个线程最多可使用255个寄存器（硬件限制）。SM的寄存器总数固定，因此**单个线程使用的寄存器越多，SM能同时容纳的线程/线程束就越少，占用率（occupancy）就越低**。线程块被调度到SM上执行。若启动的线程块总数不能被SM数量整除，则最后一批调度（尾波，tail wave）中，部分SM会空闲，造成计算资源浪费。理想情况下，应使线程块总数是SM数量的整数倍（或远多于SM数），以减少这种不均衡。
+
+例如：一个线程块包含128个线程，每个线程使用160个寄存器，则每块需 128×160 = 20,480 个寄存器。若B200每个SM有65,536个寄存器，则该SM最多可同时驻留 65,536 / 20,480 ≈ 3 个线程块，即 3 × (128/32) = 12 个warp。而B200每个SM最多可驻留64个warp，故warp占用率为 12/64 ≈ 18.75%。这种低占用率是寄存器压力导致的。但**高占用率并非总是最优**，有时需要权衡计算效率。
+
+对于极轻量级的逐元素操作，若每个线程只处理一个元素，会产生大量线程，每个线程工作量很小。可以采用**线程粗化（thread coarsening）**：让每个线程处理多个元素（例如8个），从而减少线程总数，增加单线程的计算强度，同时简化调度。Triton编译器的PTX输出就常会自动进行此类优化。
+
+**算术强度**
 
 同时我们要介绍一下**算术强度**的概念：FLOPs / bytes，如果算术强度很高，意味着这个操作是计算受限的（这是好的表现），反之，则是内存受限的（我们要尽量避免内存受限）。
 
@@ -219,7 +252,7 @@ def benchmarking():
 
 ```
 
-现在让我们尝试对**MLP**进行基准测试。具体操作是：将MLP扩展至256维，设置四层网络，批处理大小为256，执行两个训练步。测得耗时6.2秒（mlp_base)。
+现在让我们尝试对**MLP**进行基准测试。具体操作是：将MLP扩展至256维，设置四层网络，批处理大小为256，执行两个训练步。测得耗时6.2秒(mlp_base)。
 
 <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter7/images/7-2-缩放各种参数的规律.png" width="800" alt="7-2-缩放各种参数的规律">
 
@@ -347,6 +380,14 @@ def profiling():
 在这里乘以128维矩阵。128乘以128，比上面这个小得多。
 
 <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter7/images/7-6-矩阵乘法的性能分析2.png" width="800" alt="7-6-矩阵乘法的性能分析2">
+
+通过PyTorch profiler输出的内核名称，可以获取许多底层实现信息。例如矩阵乘法内核名 `cutlass_80_simt_sgemm_64x64x16` 中：
+- `cutlass` 指示使用了NVIDIA的CUTLASS线性代数库；
+- `80` 代表SM架构版本（如SM80对应A100）；
+- `sgemm` 表示单精度通用矩阵乘法；
+- `64x64x16` 是分块尺寸。
+
+对不同尺寸矩阵，PyTorch可能调度不同的内核（如小尺寸时可能直接使用 `xmma_gemm` 而绕过CUTLASS）。理解这些命名有助于判断是否用到了最优实现，也可利用 `torch.compile` 的自动调优功能为你的模型选择最佳内核。
 
 你会看到现在它实际上直接执行这个不同的命令，从 `sm80_xmma_gemm_f32f32_f32f32_f32_nn_n_tilesize32x32x8_stage3_warpsize1x2x1_ff` 这一行可以看到和上面的矩阵乘法的不同，它执行的是 `xmma_gemm` 。GEMM是一种矩阵乘法类型。后面跟着f32，即float32。从该内核的命名可以看出实际发生的情况，即这是一种瓦片（分块）的矩阵乘法。它没有经过 `Cutlass` ，而是直接执行这个特定命令。
 
@@ -704,7 +745,108 @@ Triton管理了很多烦人但可以自动优化的东西，它可以管理内�
 
 Triton非常好的一点时它可以在很大程度上超越许多PyTorch实现。就像在熟悉的Python领域直接编写CUDA，它全在Python中，你可以单步调试.
 
-### 7.5.1 使用Triton编写gelu
+### 7.5.1 使用Triton编写
+
+####  Triton实现Softmax（整行装入一个块）
+
+当矩阵一行的大小不超过线程块大小时，可以将一行完整分配给一个线程块。Triton代码几乎与普通PyTorch一致，因为块内操作自动涵盖归约和广播。
+
+```python
+@triton.jit
+def softmax_kernel(x_ptr, y_ptr, n_cols, BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(0)          # 每个块负责一行
+    row_start = pid * n_cols        # 该行的起始地址
+    offsets = row_start + tl.arange(0, BLOCK_SIZE)
+    mask = offsets < (pid + 1) * n_cols  # 确保不越界
+
+    x = tl.load(x_ptr + offsets, mask=mask, other=-float('inf'))
+    x_max = tl.max(x, axis=0)       # 求最大值（数值稳定）
+    x_exp = tl.exp(x - x_max)
+    x_sum = tl.sum(x_exp, axis=0)
+    y = x_exp / x_sum
+    tl.store(y_ptr + offsets, y, mask=mask)
+```
+
+启动时网格大小等于行数，每个线程块独自完成该行的softmax计算，**一次读写HBM即可**，无需跨块通信。
+
+---
+
+#### Triton实现行求和（数据超过块大小，需分块循环归约）
+
+当行长度超过线程块大小时，需要在块内**循环处理多个tile**，每个线程维护一个局部累加器，最后跨线程归约。
+
+```python
+@triton.jit
+def row_sum_kernel(x_ptr, y_ptr, M, N, BLOCK_SIZE: tl.constexpr):
+    pid = tl.program_id(0)          # 负责第pid行
+    row_start = pid * N
+    acc = tl.zeros((BLOCK_SIZE,), dtype=tl.float32)  # 局部累加器
+
+    for start in range(0, N, BLOCK_SIZE):
+        offsets = row_start + start + tl.arange(0, BLOCK_SIZE)
+        mask = offsets < row_start + N
+        x = tl.load(x_ptr + offsets, mask=mask, other=0.0)
+        acc += x                     # 累加当前tile
+
+    result = tl.sum(acc, axis=0)     # 跨线程归约求和
+    tl.store(y_ptr + pid, result)    # 标量结果写回
+```
+
+要点：
+- 外层循环沿列方向遍历tile，每次加载一个tile的数据并累加。
+- 循环结束后使用`tl.sum`完成线程间归约，得到该行的总和。
+- 这种**块内循环 + 局部累加 + 最后归约**的模式，是处理大行（或更一般的大维度）的核心方法，也是后续矩阵乘法分块的基础。
+
+---
+
+#### Triton实现矩阵乘法（二维Tiling）
+
+这是深度学习中最核心的操作，也是引入**二维分块**的关键案例。
+
+**朴素实现的问题**：若让每个线程计算输出矩阵C的一个元素，需反复从HBM读取A的行和B的列，读写次数为 O(M×K×N)，算术强度低，受内存带宽限制。
+
+**解决方案**：将C分块（tile），每个线程块负责一个C的tile，沿K维度循环加载A和B的对应tile到共享内存，在块内进行局部矩阵乘法并累加。这样每个元素只需从HBM读取一次，算术强度提升至 O(tile_size)。
+
+```python
+@triton.jit
+def matmul_kernel(A_ptr, B_ptr, C_ptr, M, N, K,
+                  BLOCK_M: tl.constexpr, BLOCK_N: tl.constexpr, BLOCK_K: tl.constexpr):
+    # 确定当前块负责C的哪个tile
+    pid_m = tl.program_id(0)
+    pid_n = tl.program_id(1)
+
+    # C tile的起始位置
+    offs_m = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+    offs_n = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+
+    # 累加器，存放在共享内存/寄存器中
+    acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32)
+
+    # 沿K方向循环加载A、B的tile
+    for k in range(0, K, BLOCK_K):
+        offs_k = k + tl.arange(0, BLOCK_K)
+        # 加载A的tile [BLOCK_M, BLOCK_K]，B的tile [BLOCK_K, BLOCK_N]
+        a = tl.load(A_ptr + offs_m[:, None] * K + offs_k[None, :])  # 需要mask
+        b = tl.load(B_ptr + offs_k[:, None] * N + offs_n[None, :])
+        acc += tl.dot(a, b)   # 在tile内执行矩阵乘法并累加
+
+    # 可选：融合激活函数
+    # acc = tl.maximum(acc, 0)  # relu
+
+    # 写回C的tile
+    tl.store(C_ptr + offs_m[:, None] * N + offs_n[None, :], acc)
+```
+
+要点：
+- 网格是二维的，对应C矩阵的tile划分。
+- 在K维度上循环，每次将A和B的一个小块加载到共享内存（`tl.load`会自动利用共享内存）。
+- `tl.dot`执行高效的局部矩阵乘法。
+- 可在写回前融合激活函数（如ReLU），实现算子融合。
+- 算术强度取决于 `BLOCK_K` 和 `BLOCK_M/N`，tile越大，复用率越高，但受限于共享内存大小。
+
+---
+
+#### 实现gelu
 
 ```python
 @triton.jit
