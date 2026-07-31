@@ -1,4 +1,4 @@
-# Weights & Biases（W&B）Usage Guide
+# Weights & Biases Usage Guide
 
 `Weights & Biases（W&B）`is a collaborative platform designed specifically for machine learning experiments. It supports automatic experiment configuration (`config`) logging, real-time metrics visualization, hyperparameter search (`Sweeps`), model versioning, code snapshots and dataset tracking, multi-person collaboration, and report generation. In large model research, W&B significantly improves experiment traceability, reproducibility, and analysis efficiency.
 
@@ -40,7 +40,7 @@ wandb.init(
 )
 ```
 
-The`config`parameter is fully customizable. It is recommended to put all hyperparameters, data paths, model versions, etc. into `config`, for easier filtering and comparison later.
+The `config` parameter is fully customizable. It is recommended to put all hyperparameters, data paths, model versions, etc. into `config`, for easier filtering and comparison later.
 
 
 ## 3. Offline Mode
@@ -85,7 +85,7 @@ for step, batch in enumerate(dataloader):
     })
 ```
 
-Supported types：
+Supported types:
 - scalar
 - wandb.Image
 - wandb.Table
@@ -117,7 +117,7 @@ artifact_dir = artifact.download()
 
 ## 6. FAQ
 
-#### Q1: Initialization timeout ?
+#### Q1: Initialization timeout?
 ```python
 wandb.errors.CommError: Run initialization has timed out...
 ```
@@ -126,17 +126,17 @@ wandb.errors.CommError: Run initialization has timed out...
 wandb.init(settings=wandb.Settings(init_timeout=120), mode="offline")
 ```
 
-#### Q2: Is it possible to disable W&B (for example, during debugging) ?
+#### Q2: Is it possible to disable W&B (for example, during debugging)?
 ```python
 wandb.init(mode="disabled")   # completely silent, no side effects
 ```
 
 #### Q3：I've successfully logged in to PyCharm, but I still can't use W&B to view the training process. How can I fix this?
 
-**Cause**：The runtime environment in PyCharm is independent of the terminal where you ran`wandb login`, The login state from the terminal is not automatically inherited by code executed within PyCharm. Therefore, even if the login succeeded in the terminal, running a script directly in PyCharm will not show the W&B training monitoring link.
+**Cause**：The runtime environment in PyCharm is independent of the terminal where you ran `wandb login`, The login state from the terminal is not automatically inherited by code executed within PyCharm. Therefore, even if the login succeeded in the terminal, running a script directly in PyCharm will not show the W&B training monitoring link.
 
 **Solutions**：
-- **Method 1**：Run your training script from PyCharm’s built-in terminal (i.e., execute`python train.py`）directly in the PyCharm Terminal), at this point, the terminal environment matches the login environment, and the W&B link displays correctly.
+- **Method 1**：Run your training script from PyCharm’s built-in terminal (i.e., execute `python train.py`)directly in the PyCharm Terminal), at this point, the terminal environment matches the login environment, and the W&B link displays correctly.
 - **Method 2**：Switch to VSCode, its environment integration typically inherits the terminal's login status more reliably.
 
 ---
