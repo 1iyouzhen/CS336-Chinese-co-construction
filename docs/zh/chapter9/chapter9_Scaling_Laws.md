@@ -157,7 +157,7 @@ $$\mathbb{E}[(\hat{\mu} - \mu)^2] = \frac{\sigma^2}{n}$$
 我们发现误差与样本数量 $n$ 成反比。分母是 $n$，意味着**样本量 $n$ 越大，误差越小**。从“多项式视角”看，原误差$Error = \frac{\sigma^2}{n} = {\sigma^2}*n^{-1}$，属于 n 的 −1 次多项式。
 
 对误差公式两边取对数：
-    $$ \log(\text{Error}) = -\log(n) + 2\log(\sigma) $$
+    $\log(Error)=-\log(n)+2\log(\sigma)$
 
 如果你画一个坐标图，横轴是 $\log n$（数据量的对数），纵轴是 $\log(Error)$（误差的对数）。你会得到一条**直线**，其斜率是 $-1$。这解释了为什么在之前的内容（如 Kaplan 2020）中，我们在双对数坐标系下看到的是直线。
 
@@ -556,9 +556,9 @@ Chinchilla 定律是训练最优 (Train-optimal) 的，它的目标是在固定�
 在此之前，Scaling Laws 主要是在自回归模型（Autoregressive Models，即像 GPT 这样的大语言模型）上被广泛研究。[Likelihood-Based Diffusion Language Models](https://arxiv.org/pdf/2305.18619) 研究了缩放定律（Scaling Laws）在扩散模型（Diffusion Models）上的验证结果,主要发现是扩散模型也遵循同样的缩放法则
 
 <center class="half">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-30-扩散模型的缩放法则1.png" width="400"/>
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-30扩散模型的缩放法则2.png" width="200"/>
-    <p>图9.30 不同算力预算下模型大小与性能的关系</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-33-扩散模型的缩放法则1.png" width="400"/>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-33-扩散模型的缩放法则2.png" width="200"/>
+    <p>图9.33 不同算力预算下模型大小与性能的关系</p>
 </center>
 
 Iso 前缀意味着“相等”，IsoFLOPS 是在固定总计算预算的前提下，去寻找模型大小（参数量）和训练数据量的最佳平衡点。左图是自回归模型的 IsoFLOP 曲线。中图是扩散模型的 IsoFLOP 曲线。右图把左图和中图里所有的“星星”（最佳点）连了起来，在双对数坐标下，这些最佳点连成了一条直线，这意味着扩散模型也严格遵循幂律（Power Law）。只要我们增加算力，我们就能精准地预测出扩散模型能达到多好的效果。
@@ -575,8 +575,8 @@ Iso 前缀意味着“相等”，IsoFLOPS 是在固定总计算预算的前提�
 - 采用 muP 的模型在扩展时表现出 **更稳定的（stable）** 规模化扩展
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-31-使用mμP展现了更稳定的扩展规律.png" width="500"/>
-    <p>图9.31 使用mμP展现了更稳定的扩展规律</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-34-使用mμP展现了更稳定的扩展规律.png" width="500"/>
+    <p>图9.34 使用mμP展现了更稳定的扩展规律</p>
 </div>
 
 
@@ -585,8 +585,8 @@ Iso 前缀意味着“相等”，IsoFLOPS 是在固定总计算预算的前提�
 研究人员首先使用 mμP 缩放定律训练了一个小型模型（10M 参数），然后将这些超参数迁移到更大的 Cerebras-GPT 模型上。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-32-使用mμP展现了更可预测的扩展规律.png" width="500"/>
-    <p>图9.32 使用mμP展现了更可预测的扩展规律</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-35-使用mμP展现了更可预测的扩展规律.png" width="500"/>
+    <p>图9.35 使用mμP展现了更可预测的扩展规律</p>
 </div>
 
 使用标准参数化（Standard Parameterization, SP） 和 最大更新参数化（Maximal Update Parameterization, µP） 训练的 Cerebras-GPT 模型，在不同训练 FLOPs 下相对于 Cerebras-GPT SP 拟合的 scaling law（缩放律） 的损失偏差。并且 mµP 的超参数是从一个 40M 的小模型上调优后通过 µTransfer 直接迁移到上述所有规模。
@@ -594,8 +594,8 @@ Iso 前缀意味着“相等”，IsoFLOPS 是在固定总计算预算的前提�
 文章附录也给出了 Standard Parameterization (SP) 和 mμP 比较的详细实现细节：
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-33-SP和mμP的详细实现细节比较.png" width="500"/>
-    <p>图9.33 SP和mμP的详细实现细节比较</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-36-SP和mμP的详细实现细节比较.png" width="500"/>
+    <p>图9.36 SP和mμP的详细实现细节比较</p>
 </div>
 
 展示了 Cerebras 团队如何为他们的 µP 模型找到最优的超参数。其核心思想是 “µTransfer”：即在小模型上找到一组好的超参数，然后直接将它们应用到大模型上，无需为每个大模型重新调参。
@@ -603,8 +603,8 @@ Iso 前缀意味着“相等”，IsoFLOPS 是在固定总计算预算的前提�
 在 40M 参数的小模型上对三个关键超参数进行随机超参数搜索：
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-34-在小模型对三个关键超参数进行随机超参数搜索.png" width="500"/>
-    <p>图9.34 在小模型对三个关键超参数进行随机超参数搜索</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-37-在小模型对三个关键超参数进行随机超参数搜索.png" width="500"/>
+    <p>图9.37 在小模型对三个关键超参数进行随机超参数搜索</p>
 </div>
 
 左图：η_base (基础学习率)
@@ -622,15 +622,15 @@ MiniCPM 是由面壁智能推出的系列大语言模型，这家从清华计算
 放在 2024 年他们推出 MiniCPM 模型时，在开源模型中也属于第一梯队，以更小的 2B 模型打败了当时的一众 7B 规模的模型。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-35-MiniCPM与其他SOTA模型的性能比较.png" width="500"/>
-    <p>图9.35 MiniCPM与其他SOTA模型的性能比较</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-38-MiniCPM与其他SOTA模型的性能比较.png" width="500"/>
+    <p>图9.38 MiniCPM与其他SOTA模型的性能比较</p>
 </div>
 
 #### MiniCPM 同样使用 muP 用于稳定扩展
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-36-使用muP稳定扩展.png" width="500"/>
-    <p>图9.36 使用muP稳定扩展</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-39-使用muP稳定扩展.png" width="500"/>
+    <p>图9.39 使用muP稳定扩展</p>
 </div>
 
 - MiniCPM 的结果：Scale_emb = 12, scale_depth = 1.4, init_std = 0.1, lr =0.01
@@ -647,8 +647,8 @@ MiniCPM 项目在进行“模型风洞实验”（Model Wind Tunnel Experiments�
 - 放大整体模型尺寸: 即通过增加 N(B)（非嵌入参数数量）、d_m、L 等参数，逐步构建从 9M 到 500M 参数的不同规模模型。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-37-缩放曲线中的模型配置和训练配置.png" width="500"/>
-    <p>图9.37 缩放曲线中的模型配置和训练配置</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-40-缩放曲线中的模型配置和训练配置.png" width="500"/>
+    <p>图9.40 缩放曲线中的模型配置和训练配置</p>
 </div>
 
 这张表里最大的模型是 0.5B (500M) 参数。但最终发布的 MiniCPM 主模型（如 1.2B 和 2.4B）要大得多，大约是这个最大实验模型的 5倍。这说明，作者们先用一系列小模型（9M-500M）进行了详尽的“风洞实验”，找到了最佳的超参数和缩放规则（如 μP），然后才将这套成功的经验直接应用到了更大规模的 1.2B 和 2.4B 模型上，避免了对大模型进行昂贵且耗时的盲目调参。
@@ -660,8 +660,8 @@ MiniCPM 项目在进行“模型风洞实验”（Model Wind Tunnel Experiments�
 展示了三个不同规模的模型（9M, 30M, 170M 参数）在不同数据量和批大小组合下的训练损失情况。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-38-三种不同规模模型使用不同批次大小进行训练的损失曲线.png" width="500"/>
-    <p>图9.38 三种不同规模模型使用不同批次大小进行训练的损失曲线</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-41-三种不同规模模型使用不同批次大小进行训练的损失曲线.png" width="500"/>
+    <p>图9.41 三种不同规模模型使用不同批次大小进行训练的损失曲线</p>
 </div>
 
 X轴（Batch Size，即每次梯度更新所使用的样本数量）；Y轴（已处理的总 token 数量，代表训练进度或计算量）；图中的每一列垂直排列的点，代表一个固定的批大小下，随着训练进行（Y轴增加），损失的变化曲线；红色曲线连接了在每一个特定数据量（Y轴值）下，能够达到最低损失的那个批大小，即“最优批大小”轨迹。
@@ -673,8 +673,8 @@ X轴（Batch Size，即每次梯度更新所使用的样本数量）；Y轴（�
 $$ bs = \frac{1.21 \times 10^9}{L^{6.24}} $$
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-39-连接最有批次大小.png" width="500"/>
-    <p>图9.39 连接最优批次大小</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-42-连接最有批次大小.png" width="500"/>
+    <p>图9.42 连接最优批次大小</p>
 </div>
 
 想要让模型达到更低的损失（即更好的性能），就需要使用更大的批大小。
@@ -684,8 +684,8 @@ $$ bs = \frac{1.21 \times 10^9}{L^{6.24}} $$
 根据 mμP 理论，当模型规模扩大时，最优学习率应该保持稳定。这个理论在实践中成立吗？
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-40-MiniCPM使用mμP保持了学习率的稳定性.png" width="500"/>
-    <p>图9.40 MiniCPM使用mμP保持了学习率的稳定性</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-43-MiniCPM使用mμP保持了学习率的稳定性.png" width="500"/>
+    <p>图9.43 MiniCPM使用mμP保持了学习率的稳定性</p>
 </div>
 
 从 0.04B 扩大到 2.1B（增长了 50 倍），所有不同规模模型的“最低点”（即最优学习率）都集中在 0.01 附近。这个结果完美地验证了 mμP 学习率的稳定性。
@@ -697,15 +697,15 @@ $$ bs = \frac{1.21 \times 10^9}{L^{6.24}} $$
 为了解决 Chinchilla 分析中早停（early-stopping） 的问题，他们引入了 WSD (Warmup-Stable-Decay) 学习率调度。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-41-学习率策略比较.png" width="500"/>
-    <p>图9.41 学习率策略比较</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-44-学习率策略比较.png" width="500"/>
+    <p>图9.44 学习率策略比较</p>
 </div>
 
 WSD 由三个阶段组成：预热（Warmup）、稳定（Stable）和衰减（Decay）。图中的两条 WSD 曲线（WSD(40N,4N) 和 WSD(80N,8N)）共享了相同的稳定训练阶段。这意味着，你可以在一个较长的稳定阶段（如 80N 步）训练后，随时从中间的某个检查点（如 40N 步）开始，仅进行短时间的衰减（如 4N 步），就能获得一个性能优秀的模型。这允许从单次完整训练中，通过在稳定阶段的不同点上执行衰减，来近似模拟不同数据量下的训练结果，从而极大地降低了 Chinchilla 风格分析的计算成本。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-42-模型训练损失在WSD的衰减阶段突然下降.png" width="500"/>
-    <p>图9.42 模型训练损失在WSD的衰减阶段突然下降</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-45-模型训练损失在WSD的衰减阶段突然下降.png" width="500"/>
+    <p>图9.45 模型训练损失在WSD的衰减阶段突然下降</p>
 </div>
 
 使用 WSD 进行训练时，模型损失（Loss）随处理的 token 数量变化的真实情况。稳定阶段缓慢下降，衰减阶段模型的损失却会急剧下降，并在很短的时间内达到甚至低于传统 Cosine 的最终损失水平；衰减阶段通常只需要占总训练步数的 ~10% 左右（例如 WSD(80N,8N) 中，8N 是 80N 的 10%），就能实现性能的飞跃。
@@ -717,8 +717,8 @@ WSD 由三个阶段组成：预热（Warmup）、稳定（Stable）和衰减（D
 Gadre 等人在[Language models scale reliably with over-training and on downstream tasks](https://arxiv.org/abs/2403.08540)论文里，提出基于拟合曲线的方法去估算chinchilla 曲线。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-43-验证集损失与计算量的关系.png" width="500"/>
-    <p>图9.43 验证集损失与计算量的关系</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-46-验证集损失与计算量的关系.png" width="500"/>
+    <p>图9.46 验证集损失与计算量的关系</p>
 </div>
 
 核心思想:是 “过度训练带来的‘惩罚’是稳定的”。这意味着，当模型在给定计算量下被训练到最优损失时，其性能瓶颈主要由模型大小和数据量决定，而不是由训练不充分导致。
@@ -754,8 +754,8 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 “Lower envelope” 指的是对于每一个固定的计算量，选取所有不同规模模型中能达到的最低损失。这些最低损失点连成的曲线就是“下包络线”。下图展示了三个不同任务（Code, English Wikihow, Chinese Wikihow）下的损失随计算量变化的趋势。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-44-使用WSD在三种任务上进行扩展实验的结果.png" width="500"/>
-    <p>图9.44 验证集损失与计算量的关系</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-47-使用WSD在三种任务上进行扩展实验的结果.png" width="500"/>
+    <p>图9.47 验证集损失与计算量的关系</p>
 </div>
 
 不同颜色代表不同模型。它们的运行结果表明，由于数据带来的收益递减效应相对较低。这暗示着，在当前的模型规模下，增加数据量仍然能带来显著的性能提升。
@@ -763,8 +763,8 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 “Joint fit” 指的是将模型大小 N 和数据量 D 作为两个独立变量，同时对所有实验数据点进行一次全局拟合，以得到统一的缩放律公式。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-45-使用WSD在三种任务上进行扩展实验的fit结果.png" width="500"/>
-    <p>图9.45 使用WSD在三种任务上进行扩展实验的fit结果</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-48-使用WSD在三种任务上进行扩展实验的fit结果.png" width="500"/>
+    <p>图9.48 使用WSD在三种任务上进行扩展实验的fit结果</p>
 </div>
 
 最重要的结果以子图4为例，D_opt / N_opt | C=10²¹ = 95.60。这意味着，在给定 10²¹ FLOPs 的计算量下，最优的数据量应该是模型大小的 95.6 倍。这个比例（约 100:1）远高于 Chinchilla 研究中提出的 20:1。
@@ -780,8 +780,8 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 图中包含 12 个小图，分别对应不同的模型大小（从 0.031B 到 2.0B）和不同的下游任务（Code, English (Wikihow)）。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-46-在不同模型规模和不同下游任务上使用WSD的缩放曲线.png" width="500"/>
-    <p>图9.46 在不同模型规模和不同下游任务上使用WSD的缩放曲线</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-49-在不同模型规模和不同下游任务上使用WSD的缩放曲线.png" width="500"/>
+    <p>图9.49 在不同模型规模和不同下游任务上使用WSD的缩放曲线</p>
 </div>
 
 这证明了他们使用 WSD 调度器进行高效实验的方法是可靠的，收集到的数据具有很高的质量
@@ -792,15 +792,15 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 作为 DeepSeek 基座模型的开篇工作[DeepSeek LLM: Scaling Open-Source Language Models with Longtermism](https://arxiv.org/abs/2401.02954)，正式开源了 DeepSeek-V1 ，似然 V1 的性能不像 V3 那么亮眼，但是在当时在同等规模上也达到了和 LLaMA 2 相当。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-47-DeepSeek与其他SOTA模型的性能比较.png" width="500"/>
-    <p>图9.47 DeepSeek与其他SOTA模型的性能比较</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-50-DeepSeek与其他SOTA模型的性能比较.png" width="500"/>
+    <p>图9.50 DeepSeek与其他SOTA模型的性能比较</p>
 </div>
 
 在 Scaling strategy 上，DeepSeek 代表了另一种务实的技术路线，他们没有使用 muP，而是选择直接拟合缩放定律来指导超参选择。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-48-给定预算下批次大小和学习率的组合.png" width="500"/>
-    <p>图9.48 给定预算下批次大小和学习率的组合</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-51-给定预算下批次大小和学习率的组合.png" width="500"/>
+    <p>图9.51 给定预算下批次大小和学习率的组合</p>
 </div>
 
 本图旨在经验性地研究在给定的计算预算下，哪些批次大小和学习率的组合能够使模型达到最优或接近最优的性能。图中颜色最深、泛化误差最低的区域集中在右下角。这表明对于这个特定的计算预算和模型规模，较大的批次大小和相对较小的学习率可以获得更好的性能。
@@ -809,8 +809,8 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 这张图展示了DeepSeek LLM在不同计算预算（Non-Embedding Training FLOPs）下，训练过程中最优批次大小（Optimal Batch Size）和最优学习率（Optimal Learning Rate）的变化趋势。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-49-不同计算预算下最优批次大小和最优学习率的变化趋势.png" width="500"/>
-    <p>图9.49 不同计算预算下最优批次大小和最优学习率的变化趋势</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-52-不同计算预算下最优批次大小和最优学习率的变化趋势.png" width="500"/>
+    <p>图9.52 不同计算预算下最优批次大小和最优学习率的变化趋势</p>
 </div>
 
 (a) 批次大小缩放曲线 (b) 学习率缩放曲线。通过对大量实验数据的拟合，论文作者确定了批次大小和学习率这两个关键超参数与训练计算预算之间的幂律关系。
@@ -818,15 +818,15 @@ MiniCPM 团队选择了两种方法进行分析：“下包络法(lower envelope
 我们可以发现，批次大小拟合曲线很好的呈现出线性关系，但是学习率拟合曲线并非看起来是完美的线性，数据点有聚集。而在论文里将这描述为“近乎最优超参数存在一个宽泛区间”，笔者个人认为“宽泛区间”是一种现实对理想情况的一种承认和“让步”，它接受了现实中的非完美性。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-50-不同学习率调度器对训练损失的影响.png" width="500"/>
-    <p>图9.50 不同学习率调度器对训练损失的影响</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-53-不同学习率调度器对训练损失的影响.png" width="500"/>
+    <p>图9.53 不同学习率调度器对训练损失的影响</p>
 </div>
 
 图 （a）尽管两种调度器在训练过程中损失下降的趋势略有不同，但最终在处理完 1000 亿 tokens 后，它们的训练损失非常接近。这表明多步学习率调度器在模型最终性能上与余弦调度器基本保持一致。但选择多步学习率调度器的一个重要原因是它更便于进行“持续训练”（continual training），即在原有模型基础上继续训练，可以重复利用第一阶段的训练成果。同时，他们(图 b )也验证了多步调度器中不同阶段比例的选择对最终性能的影响有限。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-51-计算预算-模型规模和数据规模之间的Scaling-Law.png" width="500"/>
-    <p>图9.51 计算预算-模型规模和数据规模之间的Scaling-Law</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-54-计算预算-模型规模和数据规模之间的Scaling-Law.png" width="500"/>
+    <p>图9.54 计算预算-模型规模和数据规模之间的Scaling-Law</p>
 </div>
 
 
@@ -841,8 +841,8 @@ IsoFLOP 分析 = 在相同总计算量（FLOPs）下，比较不同 (N,D) 组合
 图（c）揭示了数据规模的最佳增长路径。研究发现，最优数据规模 $D_{opt}$​ 与计算预算 C 之间也存在幂律关系，即 $D_{opt} \propto C^b$，其中 b 是数据缩放指数。这意味着随着计算资源的增加，模型训练所需的数据量也应相应增加。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-52-DeepSeek在不同训练计算预算下在验证集上的性能表现.png" width="500"/>
-    <p>图9.52 DeepSeek在不同训练计算预算下在验证集上的性能表现</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-55-DeepSeek在不同训练计算预算下在验证集上的性能表现.png" width="500"/>
+    <p>图9.55 DeepSeek在不同训练计算预算下在验证集上的性能表现</p>
 </div>
 
 这张图展示了DeepSeek LLM模型在不同训练计算预算下，其在验证集上的性能表现，即所谓的“性能缩放曲线”。它验证了论文中提出的缩放定律能够有效预测大规模模型的性能。该图的关键在于，DeepSeek LLM 7B 和 67B 这两个大规模模型的实际性能（蓝色星形点）与通过小规模实验数据拟合出的缩放曲线（虚线）高度吻合。这表明通过小规模实验得到的缩放定律可以准确**预测**计算预算增加数百甚至上千倍后（例如 10^{20} 量级的实验可以预测 10^{23} 或 10^{24} 量级的模型）大规模模型的性能。这为研究人员和开发者在投入巨大计算资源训练大型模型之前，提供了可靠的性能预期和优化资源分配的指导。
@@ -854,15 +854,15 @@ IsoFLOP 分析 = 在相同总计算量（FLOPs）下，比较不同 (N,D) 组合
 下面的图表有力地证明了 [Llama 3](https://arxiv.org/abs/2407.21783) 团队在模型开发中运用缩放定律的成功。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-53-Llama3的IsoFLOPs的Scaling-Law曲线.png" width="500"/>
-    <p>图9.53 Llama3的IsoFLOPs的Scaling-Law曲线</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-56-Llama3的IsoFLOPs的Scaling-Law曲线.png" width="500"/>
+    <p>图9.56 Llama3的IsoFLOPs的Scaling-Law曲线</p>
 </div>
 
 这张图展示了 Llama 3 团队在模型开发过程中，如何利用缩放定律（(39-1 ratio)）来指导预训练，以在不同计算预算下达到最佳模型性能。
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-54-对ARC-Challenge的Scaling-law预测.png" width="500"/>
-    <p>图9.54 对ARC-Challenge的Scaling-law预测</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-57-对ARC-Challenge的Scaling-law预测.png" width="500"/>
+    <p>图9.57 对ARC-Challenge的Scaling-law预测</p>
 </div>
 
 这张图展示了 Llama 3 团队如何利用缩放定律（Scaling Laws）来预测其模型 Llama 3 405B 在特定下游任务（这里是 ARC Challenge 基准测试）上的表现。左图是计算量 (FLOPs) 与标准化负对数似然 (NLL) 的关系，右图是标准化负对数似然 (NLL) 与准确率 (Accuracy) 的关系。
@@ -870,8 +870,8 @@ IsoFLOP 分析 = 在相同总计算量（FLOPs）下，比较不同 (N,D) 组合
 #### Hunyuan-1 (2024) large scaling laws
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-55-Hunyuan混合专家模型的Scaling-Law.png" width="500"/>
-    <p>图9.55 Hunyuan混合专家模型的Scaling-Law</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-58-Hunyuan混合专家模型的Scaling-Law.png" width="500"/>
+    <p>图9.58 Hunyuan混合专家模型的Scaling-Law</p>
 </div>
 
 这张图展示了Hunyuan-Large模型在进行预训练时，关于**混合专家（MoE）**模型缩放法则的重要发现。左图是不同计算预算下的训练损失与激活参数关系，右图是激活参数与最低计算预算的缩放关系。另外，该研究指出在大型语言模型（特别是MoE模型）的预训练中，为了达到计算效率最优，理想的配置是每激活一个参数，大约需要使用96个训练 token 进行训练。
@@ -880,8 +880,8 @@ IsoFLOP 分析 = 在相同总计算量（FLOPs）下，比较不同 (N,D) 组合
 #### MiniMax-01 (2025)
 
 <div align="center">
-    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-56-MinMax-Scaling-Laws.png" width="500"/>
-    <p>图9.56 MinMax-Scaling-Laws</p>
+    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter9/images/9-59-MinMax-Scaling-Laws.png" width="500"/>
+    <p>图9.59 MinMax-Scaling-Laws</p>
 </div>
 
 这张图展示了在不同计算预算（以 PFLOP/s-days 为单位）下，三种不同的注意力机制（Softmax Attention, Lightning Attention, Hybrid-lightning）在模型性能（Loss）、模型规模（Number of parameters）以及训练数据量（Tokens）方面的扩展规律。
