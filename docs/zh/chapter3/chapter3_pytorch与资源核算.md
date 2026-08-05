@@ -86,18 +86,32 @@ $$ \text{时间} = \frac{\text{总工作量}}{\text{总算力}} = \frac{6.3 \tim
 
 $$ \text{最大参数量} = \frac{640 \times 10^9 \text{ bytes}}{16 \text{ bytes/param}} \approx \textbf{400 亿 (40B)} $$
 
-当然，这个估算较为粗略，因为它未考虑依赖于批次大小和序列长度的激活值内存占用，所以如果不考虑混合精度或压缩，实际能训练的模型可能会更小。
+**重要前提**：这个计算忽略了激活值内存（取决于 batch size 和序列长度），所以只是一个**理论上界**，实际能训练的模型会比这个小。激活值 = 前向传播中每一层的输出。数据流过网络时，每经过一个矩阵乘法或非线性函数就产生一批中间结果，这些中间结果就是激活值。
 
 ## 3.2 张量 (Tensors)
 
 ### 3.2.1 张量基础
 
-在深度学习中，张量（tensor）是存储一切的基础数据结构：模型参数、梯度、优化器状态、输入数据、中间激活值等都以张量形式存在。更多关于张量的知识可见 [PyTorch docs/zh on tensors](https://docs/zh.pytorch.org/docs/zh/stable/tensors.html)。
+张量是深度学习中存储一切的基本构建块，包括：
+
+- 数据（data）
+- 模型参数（parameters）
+- 梯度（gradients）
+- 优化器状态（optimizer state）
+- 激活值（activations）
+
+都以张量形式存在。更多关于张量的知识可见 [PyTorch docs/zh on tensors](https://docs/zh.pytorch.org/docs/zh/stable/tensors.html)。
+
+以 DeepSeek V3.2 为例，其所有参数都以张量形式存储在模型文件中：
+
+- [DeepSeek V3.2](https://arxiv.org/abs/2512.02556)
+- [DeepSeek V3.2 on HuggingFace](https://huggingface.co/deepseek-ai/DeepSeek-V3.2?show_file_info=model.safetensors.index.json)
+
+#### 创建方式
 
 PyTorch提供了多种创建张量的方法：
 
 ```
-# 基础创建方式
 x = torch.tensor([[1., 2, 3], [4, 5, 6]])  # 从Python列表创建
 x = torch.zeros(4, 8)  # 4x8的零矩阵
 x = torch.ones(4, 8)   # 4x8的全1矩阵
@@ -106,6 +120,26 @@ x = torch.randn(4, 8)  # 4x8的正态分布随机数
 # 分配但不初始化值（用于自定义初始化的值）
 x = torch.empty(4, 8)  # 未初始化的4x8矩阵
 nn.init.trunc_normal_(x, mean=0, std=1, a=-2, b=2)  # 截断正态分布初始化，分布均值为0，标准差为1，截断范围，只保留[-2, 2]区间内的值，超出此范围的值会被重新采样
+```
+
+#### 张量的秩（Rank）
+
+张量的秩就是维度数：
+
+```python
+x = torch.zeros(4)        # 秩 1 张量（向量），shape = (4,)
+x = torch.zeros(4, 8)     # 秩 2 张量（矩阵），shape = (4, 8)
+x = torch.zeros(4, 8, 2)  # 秩 3 张量，shape = (4, 8, 2)
+```
+
+在 Transformer 中，常见的张量是秩 4 的：
+
+```python
+B = 32   # Batch size（批次大小）
+S = 16   # Sequence length（序列长度）
+H = 16   # Number of heads（注意力头数）
+D = 64   # Hidden dimension per head（每个头的隐藏维度）
+x = torch.zeros(B, S, H, D)
 ```
 
 ### 3.2.2 张量的操作
@@ -362,7 +396,7 @@ x = rearrange(x, "... heads hidden2 -> ... (heads hidden2)")
 *   **缺点**：对于大模型而言太“奢侈”。它占用的显存是 16位格式的两倍，且在现代 GPU（如 H100）上的计算吞吐量远低于低精度格式。
 *   **炼丹用途**：通常用于存储**参数的主副本 (Master Weights)** 和 **优化器状态 (Optimizer States)**，以确保在梯度累积和参数更新时不会因为精度丢失而导致模型无法收敛。
 
-
+> 参考：[Wikipedia — Single-precision floating-point format](https://en.wikipedia.org/wiki/Single-precision_floating-point_format)
 
 2. Float16 (FP16 / 半精度浮点数)
 
@@ -378,6 +412,8 @@ x = rearrange(x, "... heads hidden2 -> ... (heads hidden2)")
     *   由于指数位只有 5 位，它无法表示非常小的数（会发生下溢 Underflow，直接变成 0）或非常大的数（会发生上溢 Overflow，变成 Infinity）。
     *   例如：在 FP16 中，`1e-8` 这样的小数会被直接当作 `0` 处理，导致梯度消失。
 *   **用途**：这是上一代 GPU（如 V100）混合精度训练的主流。为了解决溢出问题，必须使用复杂的**损失缩放 (Loss Scaling)** 技术。目前在 LLM 训练中正逐渐被 BF16 取代。
+
+> 参考：[Wikipedia — Half-precision floating-point format](https://en.wikipedia.org/wiki/Half-precision_floating-point_format)
 
 3. BFloat16 (BF16 / Brain Floating Point)
 
@@ -396,6 +432,10 @@ x = rearrange(x, "... heads hidden2 -> ... (heads hidden2)")
     *   显存占用和 FP16 一样少。
     *   在 A100/H100 等新硬件上计算速度极快。
 *   **用途**：**当前 LLM 训练的绝对主流选择**。通常用于存储**激活值 (Activations)** 以及进行前向和反向传播的矩阵乘法计算。
+
+Percy 在课上解释说："bf16 牺牲了精度来换取范围。对于深度学习来说，范围比精度重要得多，因为数值稳定性的主要威胁是溢出/下溢，而不是尾数精度不够。"
+
+> 参考：[Wikipedia — Bfloat16 floating-point format](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format)
 
 4. FP8 (8位浮点数)
 
@@ -416,6 +456,29 @@ x = rearrange(x, "... heads hidden2 -> ... (heads hidden2)")
 **🪜 为什么 BF16 优于 FP16？**
 > 在深度学习中，我们通常不关心小数点后第10位的精确度（精度），但非常关心能否表示非常大或非常小的数（动态范围）。FP16 的指数位太少，导致训练中经常出现 `NaN` 或 `0`（下溢）。BF16 截断了 FP32 的尾数，保留了指数位，因此它能表示的数值范围与 FP32 一样大，极大地提升了训练稳定性。
 
+4. FP4 / NVFP4（4 位浮点）
+
+2025 年，NVIDIA 开发了 [NVFP4](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/)，每个值仅 4 bits！
+
+**可表示的 16 个值（只有这么多可能值，因为 2⁴ = 16）**：
+`-6, -4, -3, -2, -1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2, 3, 4, 6`
+
+Percy 在课上强调了一个关键细节：**NVFP4 不是单纯每个值都只有 4 比特的动态范围**。"如果你天真地只用这 16 个值，是无法有效训练的。实际上每个值拥有 4 比特的自由度，但数据被划分成 **block**（块），每个块有一个共享的缩放因子（scale factor），可以整体放大或缩小。这样单个值实际拥有超过 4 比特的动态范围，但相邻值之间的比值仍然受限于 4 比特。"
+
+用一个类比：每个 block 内你可以在 4 比特的精度范围内自由变化，而 block 的缩放因子让整个 block 的值可以移到不同的量级。代价是**你不能让一个值非常大而它旁边的值非常小**，因为它俩属于同一个 block，共享同一个缩放因子。
+
+**训练 vs 推理**：Percy 特别区分了两者。
+
+- 推理时：可以在 bf16 训练好模型后，将模型权重量化到 1 或 2 比特
+- 训练时：用 1 比特训练语言模型要困难得多——Percy 直言"不认为有任何人做过可信的 1-bit 训练"
+
+2026 年发布的 **Nemotron 3 Super** 是在 NVFP4 精度下训练的大型模型。
+
+> 参考：[Nemotron 3 Super (NVIDIA, 2026)](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Super-Technical-Report.pdf)
+
+Percy 也提到，fp4 这些底层精度操作实际上是在 NVIDIA 的软件栈中自动完成的，"不是你创建一个张量然后调用 `tensor.fp4()` —— 很多工作是在底层 `under the hood` 进行的，用户无法直接控制。"
+
+不同精度的运算速度完全不同。Percy 特别强调，**现在的 GPU 已经不太优化 fp32 了**："如果你现在用 fp32 做训练，会发现真的非常非常慢，因为硬件优化的重点已经转向了 bf16 甚至 fp8。"
 
 ### 3.3.2 张量在内存中的存储机制
 
@@ -612,6 +675,24 @@ actual_flop_per_sec = actual_num_flops / actual_time  # 实际每秒能完成多
 promised_flop_per_sec = get_promised_flop_per_sec(device, x.dtype)  # 获取硬件的理论峰值性能
 ```
 
+#### 实际计时与 Benchmarking
+
+要知道实际花了多长时间，需要实际测量。Percy 介绍了 benchmark 的基本要素：
+
+```python
+def benchmark(func, num_trials=5):
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()   # 确保之前的 CUDA 操作已完成
+    # 运行 num_trials 次并取平均
+    ...
+    torch.cuda.synchronize()   # 操作后的同步点
+```
+
+**关键注意事项**：
+
+1. **`torch.cuda.synchronize()`** 是必须的：GPU 操作是异步的，不加同步点你会发现"哇，好快"——其实只是操作还没开始执行，调用就返回了。
+2. 通常需要多次运行取平均值来减少噪声。
+
 ### 3.4.2 MFU (Model FLOPs Utilization)
 
 MFU = (实际FLOP/s) / (硬件峰值FLOP/s)，即：
@@ -641,7 +722,6 @@ bf16_mfu = bf16_actual_flop_per_sec / bf16_promised_flop_per_sec
 ```
 
 使用 bfloat16 时，actual_flop_per_sec 通常比 float32 更高，因为硬件对低精度计算进行了优化。这里的 MFU 值相当低，可能是因为硬件厂商公布的 promised_flop_per_sec 往往是过于乐观的估计。
-
 
 ### 3.4.3 PyTorch 中的梯度计算
 
@@ -1232,12 +1312,9 @@ loaded_checkpoint = torch.load("model_checkpoint.pt")
 
 #### 混合精度训练概述
 
-**混合精度训练（Mixed Precision Training）**，这是现代深度学习中一项至关重要的技术，旨在在保持模型训练稳定性的前提下，大幅减少内存占用并提升计算速度。
+**问题**：fp32 能稳定训练但内存太大；fp16/bf16 省内存但有数值不稳定风险。如何在“高精度的稳定性”和“低精度的效率”之间取得平衡？
 
-- 高精度（如 float32）的优点是计算更精确、训练过程更稳定；缺点是占用更多内存，需要更多的计算资源（FLOPs），速度较慢。
-- 低精度（如 bfloat16, fp8）的优点是占用更少内存，计算速度更快；缺点是计算精度较低，可能导致训练不稳定（如梯度下溢或上溢）。
-
-如何在“高精度的稳定性”和“低精度的效率”之间取得平衡？
+**解决方案**：混合精度训练 [(Mixed Precision Training, 2017)](https://arxiv.org/pdf/1710.03740.pdf)
 
 解决方案是采用混合精度策略。默认使用 float32，确保关键部分的计算精度。在可能的情况下使用 {bfloat16, fp8}，利用其高效的内存和计算特性。如下给出一个经典的混合精度训练方案：
 
@@ -1250,15 +1327,151 @@ loaded_checkpoint = torch.load("model_checkpoint.pt")
 
 这里我们介绍两个主要的工具库，它们可以自动化地实现混合精度训练：
 
-- PyTorch 的 AMP 库 (Automatic Mixed Precision)：这是一个内置的库，可以自动管理不同部分的精度转换，无需手动修改代码 - [PyTorch AMP 文档](https://pytorch.org/docs/zh/stable/amp.html)
+- PyTorch 的 AMP 库 (Automatic Mixed Precision)：PyTorch 提供了自动混合精度（AMP）库，会自动将安全的操作（如矩阵乘法）转为 bf16，将危险操作（如 exp、softmax）保留为 fp32：
+
+```python
+with torch.amp.autocast("cuda", dtype=torch.bfloat16):
+    x = torch.zeros(4, 8)  # 自动以 bf16 创建
+```
+
+> 参考：[PyTorch AMP 文档](https://pytorch.org/docs/stable/amp.html)
+
 - NVIDIA Transformer Engine：这是一个专门针对 Transformer 模型优化的库，它支持在矩阵乘法等核心操作中使用 FP8 精度。目标是实现全链路的 FP8 训练，即在整个训练过程中都使用 FP8，以达到极致的性能和效率。- [FP8-LM: Training FP8 Large Language Models](https://arxiv.org/pdf/2310.18313)
 
+## 3.6 算术强度与 Roofline 分析
+
+### 3.6.1 计算不是只有"算"
+
+<div align="center">
+   <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter3/images/3-12-compute-memory.png" />
+   <p>图3.12 计算与内存</p>
+ </div>
+ 
+Percy 画了一张卡通图来简化 GPU 的工作模型：
+
+1. **从 HBM（高带宽内存）发送输入到计算核心**
+2. **执行计算**
+3. **将输出从计算核心送回 HBM**
+
+> "你不只是在做一堆 MatMul 然后看它们花了多长时间。你还得把数据搬来搬去。"
+
+总时间取决于两个因素：
+
+| 因素 | 含义 | H100 规格 |
+|------|------|-----------|
+| **加速器速度**（FLOP/s） | 算得有多快 | 989.5 TFLOPS (bf16) |
+| **内存带宽**（Bytes/s） | 数据搬得有多快 | 3.35 TB/s |
+
+> "记得我们之前关注内存占用吗？不仅是因为模型太大会放不进 HBM，更因为搬数据本身也需要时间。内存的大小实际上也影响速度。"
+
+### 3.6.2 ReLU 的算术强度分析
+
+以一个简单的 ReLU 操作为例（1024 × 1024 维的 bf16 向量）：
+
+**内存移动（Bytes）**：
+- 读入 x：2 × n（bf16 是 2 字节/元素）
+- 写出 y：2 × n
+- 总计：4n
+
+**计算量（FLOPs）**：
+- n 次比较（max(x, 0)）
+- 共 n FLOPs
+
+**通信时间** = 4n / (3.35 × 10¹²) ≈ 1.2 × 10⁻⁶ 秒
+**计算时间** = n / (989.5 × 10¹²) ≈ 1.0 × 10⁻⁹ 秒
+
+> 这里有一个重要假设：**通信和计算可以完美重叠（overlap）**。在理想情况下，数据到达后立即开始计算，计算的同时下一批数据已在传输。因此总时间 = max(通信时间, 计算时间)，而不是两者之和。
+
+在这个例子中，**通信时间远超计算时间**——ReLU 是典型的 **memory-bound**（内存受限）操作。
+
+### 3.6.3 算术强度的定义
+
+为了避免每次都要计算两个时间再比较，引入**算术强度（Arithmetic Intensity）**：
+
+```
+加速器强度 = FLOP/s / Bytes/s  → H100 约 295 FLOP/byte
+算术强度 = FLOPs / Bytes        → 该操作每搬运 1 字节能做多少 FLOP
+```
+
+- 算术强度 < 加速器强度 → **Memory-bound**（瓶颈在数据传输）
+- 算术强度 > 加速器强度 → **Compute-bound**（瓶颈在计算）
+
+> "对于 H100，加速器强度大约是 295。这个数字值得记一下——对于 bf16 来说，每搬运 1 字节你需要做大约 300 次浮点运算才能摆脱内存瓶颈。"
+
+### 3.6.4 一系列操作的算术强度对比
+
+Percy 带领大家逐一分析了几个常见操作的算术强度：
+
+| 操作 | FLOPs | Bytes | 算术强度 | 瓶颈 |
+|------|-------|-------|----------|------|
+| **ReLU** | n | 4n | ≈ 0.25 | Memory-bound |
+| **GeLU** | 20n | 4n | ≈ 5 | Memory-bound |
+| **Dot Product** | 2n-1 | 4n+2 | ≈ 0.5 | Memory-bound |
+| **Matrix-Vector** | n(2n-1) | 2n²+4n | ≈ 1 | Memory-bound |
+| **Matrix-Matrix** | n²(2n-1) | 6n² | ≈ n/3 ≈ 340 | **Compute-bound** |
+
+**关键直觉**：
+
+1. **ReLU vs GeLU**：尽管 GeLU 公式包含 tanh、多项式等复杂运算，FLOPs 是 ReLU 的 20 倍，但两者在 GPU 上的实际耗时几乎一样——因为它们都是 memory-bound，瓶颈在数据搬运而不是计算。"你以为 GeLU 很复杂所以肯定慢，但实际上它不构成瓶颈所在。"
+
+2. **算术强度 = 0.25 意味着什么**：Percy 说"如果有人告诉你一个算法的算术强度是 0.25，你应该立刻说'这太糟糕了'。"
+
+3. **矩阵乘法的 O(n) 优势**：对于 n×n 矩阵乘法，搬运了 O(n²) 的数据，但做了 O(n³) 的计算，所以算术强度是 O(n)。矩阵越大，算术强度越高。
+
+4. **为什么大 batch size 很重要**："当你在加速器强度以下时，把矩阵变小并不会让速度变快——因为瓶颈不在计算。只有当你超过加速器强度的转折点，你才真正在**饱和使用你的 GPU**。"
+
+### 3.6.5 训练 vs 推理的算术强度差异
+
+Percy 特别指出：
+
+- **训练时**：输入是整个序列，相当于矩阵乘法。处理一个序列的所有 token 的矩阵乘法有很高的算术强度，是 **compute-bound**。
+- **推理时**：逐 token 生成，相当于**矩阵-向量乘**（一个 vector 和一个 matrix 做点积）。如前面分析，矩阵-向量乘是 **memory-bound**。
+
+"这解释了为什么推理的 MFU 远低于训练：你不是在喂饱计算单元，而是在等待数据从 HBM 搬过来。"
+
+### 3.6.6 Roofline 图
+
+![Roofline 分析](https://jax-ml.github.io/scaling-book/assets/img/roofline-improved-1400.webp)
+
+Roofline 图直观地展示了算术强度与性能的关系：
+
+- **X 轴**：算术强度（每个"切片"对应一个特定算法）
+- **Y 轴**：实际达到的 FLOP/s
+- **每条分段线性曲线**：一个特定的硬件平台（H100、B200 等）
+- **转折点（kink）**：该硬件的加速器强度——转折点左侧是 memory-bound 区域（斜率上升），右侧是 compute-bound 区域（水平天花板）
+
+Percy 解释："如果你的操作在转折点左侧，说明算术强度不够高，实际 FLOPs 远低于硬件的峰值能力。只有当算术强度超过转折点，你才能接近峰值 FLOP/s。"
+
+**MFU 与 Roofline 的关系**：
+
+```
+MFU = min(1, 算术强度 / 加速器强度)
+```
+
+这就是 MFU 通常只有 0.5 左右的原因——很多操作的算术强度低于加速器强度，导致 GPU 的计算单元在"空转等待数据"。
+
+有学生问：如果大部分操作都是 memory-bound，为什么 GPU 不设计更好的内存带宽？Percy 回答："也许等你了解 GPU 的更多工作原理后我们可以讨论。如果你有更好的硬件设计方案，你应该告诉 Jensen（黄仁勋）。"
+
+> 参考：[JAX Scaling Book — Roofline](https://jax-ml.github.io/scaling-book/roofline/)
 
 
 ---
 
-### 📚 参考资料
-*   [PyTorch Docs on Tensors](https://pytorch.org/docs/zh/stable/tensors.html)
-*   [Einops Tutorial](https://einops.rocks/) (强烈推荐用于处理复杂的维度变换)
-*   [FlashAttention Paper](https://arxiv.org/abs/2205.14135) (关于 IO 感知的高效计算)
-*   [NVIDIA H100 Datasheet](https://resources.nvidia.com/en-us-tensor-core/nvidia-tensor-core-gpu-datasheet)
+### 📚 参考文献与延伸阅读
+- [DeepSeek V3.2](https://arxiv.org/abs/2512.02556) — DeepSeek V3.2 技术报告
+- [Mixed Precision Training (2017)](https://arxiv.org/pdf/1710.03740.pdf) — 混合精度训练奠基论文
+- [FP8 Formats for Deep Learning (2022)](https://arxiv.org/pdf/2209.05433.pdf) — FP8 标准化论文
+- [NVFP4 Introduction (2025)](https://developer.nvidia.com/blog/introducing-nvfp4-for-efficient-and-accurate-low-precision-inference/) — NVIDIA 4 位浮点介绍
+- [Nemotron 3 Super (2026)](https://research.nvidia.com/labs/nemotron/files/NVIDIA-Nemotron-3-Super-Technical-Report.pdf) — 首个 NVFP4 训练的大模型
+- [FP8 Primer (NVIDIA)](https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/examples/fp8_primer.html) — FP8 入门指南
+- [Einops Tutorial](https://einops.rocks/1-einops-basics/) — Einops 官方教程
+- [H100 Datasheet](https://resources.nvidia.com/en-us-gpu-resources/h100-datasheet-24306) — NVIDIA H100 规格表
+- [GPT-3 FLOPs Analysis](https://lambdalabs.com/blog/demystifying-gpt-3) — Lambda Labs 对 GPT-3 计算量的分析
+- [GPT-4 Details Revealed](https://patmcguinness.substack.com/p/gpt-4-details-revealed) — GPT-4 细节推测
+- [AdaGrad (2011)](https://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf) — AdaGrad 原始论文
+- [Transformer Memory Usage (2023)](https://erees.dev/transformer-memory/) — Transformer 内存使用详解
+- [Transformer FLOPs](https://www.adamcasson.com/posts/transformer-flops) — Transformer FLOPs 核算
+- [JAX Scaling Book — Roofline](https://jax-ml.github.io/scaling-book/roofline/) — Roofline 分析参考
+- [PyTorch AMP Documentation](https://pytorch.org/docs/stable/amp.html) — PyTorch 自动混合精度文档
+- [CS336 Course Website](https://cs336.stanford.edu/)
+
