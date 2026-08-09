@@ -222,9 +222,9 @@ OpenAI 在 [《Language Models are Unsupervised Multitask Learners》](https://c
 
 自 GPT-2 和 GPT-3 以来，语言建模论文的研究方向已经更多地转向下游任务的准确性。但困惑仍然有用的原因如下：
 
-- 更平滑，适合拟合缩放定律（scaling laws）.下游任务准确率往往波动大、有天花板，而困惑度变化连续，便于研究模型性能如何随参数量/数据量增长。
-- 通用性强，适用于任何文本.不像特定任务需要标注数据，困惑度可以在任何文本上计算 —— 更适合作为“基础能力”的度量。
-- 可扩展到条件困惑度（conditional perplexity）.比如在问答任务中，固定问题部分，只计算答案部分的困惑度 —— 也能反映模型在该任务上的语言建模能力。
+- **更平滑，适合拟合缩放定律（scaling laws）**。**下游任务准确率往往波动大、有天花板，而困惑度变化连续**，便于研究模型性能如何随参数量/数据量增长。
+- **通用性强，适用于任何文本**。不像特定任务需要标注数据，困惑度可以在任何文本上计算 —— 更适合作为“基础能力”的度量。
+- **可扩展到条件困惑度（conditional perplexity）**。比如在问答任务中，固定问题部分，只计算答案部分的困惑度 —— 也能反映模型在该任务上的语言建模能力。
 
 📌 所以，困惑度不仅是训练目标，也是分析模型内在能力的重要工具。
 
@@ -251,8 +251,6 @@ OpenAI 在 [《Language Models are Unsupervised Multitask Learners》](https://c
 完形填空类任务就是给定一段上下文（context），让模型预测其中一个被遮盖的词（target word）。这个任务要求模型不仅要理解局部语法，还要捕捉长距离依赖、语义连贯性、世界知识等。只关注某个关键位置的预测质量，而不是整个句子。
 
 因此，完形填空类任务可以看作是“局部困惑度”。
-
-
 
 来自 [LAMBADA](https://arxiv.org/abs/1606.06031) 数据集的三个具体例子 
 
@@ -440,13 +438,13 @@ HellaSwag 可以看作是“情境下的困惑度”，模型不需要输出概�
 
 这类基准评估模型作为智能体（Agent） 的能力，即在复杂环境中通过工具调用和迭代规划完成任务。
 
-### SWEBench
+### SWE-Bench
 
-[SWEBench](https://arxiv.org/abs/2310.06770) 包含 12 个 Python 代码库中的 2294 个任务，根据 GitHub issue 描述，提交一个能通过单元测试的 Pull Request (PR)。评估直接运行单元测试来验证修复是否成功。
+[SWE-Bench](https://arxiv.org/abs/2310.06770) 包含 12 个 Python 代码库中的 2294 个任务，根据 GitHub issue 描述，提交一个能通过单元测试的 Pull Request (PR)。评估直接运行单元测试来验证修复是否成功。
 
 <div align="center">
    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter12/images/12-26-SWEBench评测流程示意图.png" />
-   <p>图12.26 SWEBench评测流程示意图</p>
+   <p>图12.26 SWE-Bench评测流程示意图</p>
  </div>
 
 ### CyBench
@@ -506,7 +504,7 @@ ARC-AGI-1:
    <p>图12.33 ARC-AGI-2评测示意图</p>
  </div>
  
-它捕捉了一种更纯粹的、类似人类的模式识别和泛化能力，是早期 AGI 研究的重要基准。传统 LLM 在此任务上表现极差，但最新模型已展现出一定能力。
+它捕捉了一种更纯粹的、类似人类的模式识别和泛化能力，是早期 AGI 研究的重要基准。传统 LLM 在此任务上表现极差，但最新 o1/o3 这类 reasoning 模型已展现出一定能力。
 
 ## 12.8 安全基准
 
@@ -516,7 +514,6 @@ ARC-AGI-1:
    <img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter12/images/12-34-什么是安全.png" />
    <p>图12.34 什么是安全</p>
  </div>
-
 
 安全评估旨在衡量模型执行有害行为的倾向。在 HELM 的 [Leaderboard Safety Scenarios](https://crfm.stanford.edu/helm/safety/latest/#/leaderboard) 展示了当前 LLM 在安全领域的排行榜。 
 
@@ -553,7 +550,6 @@ ARC-AGI-1:
 </div>
 
 ### 越狱（Jailbreaking）:
-
 
 即使模型被训练为拒绝有害请求，[攻击者也能通过自动优化提示（如 Greedy Coordinate Gradient, GCG）来绕过安全防护](https://arxiv.org/pdf/2307.15043)。这类攻击甚至能从开源模型迁移到闭源模型。
 
@@ -645,3 +641,24 @@ ARC-AGI-1:
 
 这两种范式各有价值：评估方法能促进算法创新；评估系统对下游用户更有意义。但必须清晰界定评估的“游戏规则”，否则比较将失去意义。
 
+---
+
+## 参考文献与延伸阅读
+
+- [MMLU (Hendrycks et al., 2021)](https://arxiv.org/abs/2009.03300)
+- [MMLU-Pro (Wang et al., 2024)](https://arxiv.org/abs/2406.01574)
+- [GPQA (Rein et al., 2023)](https://arxiv.org/abs/2311.12022)
+- [HLE (Phan et al., 2025)](https://arxiv.org/abs/2501.14249)
+- [Chatbot Arena (Chiang et al., 2024)](https://arxiv.org/abs/2403.04132)
+- [AlpacaEval (Dubois et al., 2024)](https://arxiv.org/abs/2404.04475)
+- [WildBench (Lin et al., 2024)](https://arxiv.org/abs/2406.04770)
+- [SWE-Bench (Jimenez et al., 2024)](https://arxiv.org/abs/2310.06770)
+- [TerminalBench](https://arxiv.org/abs/2601.11868)
+- [CyBench (Zhang et al., 2024)](https://arxiv.org/abs/2408.08926)
+- [MLEBench (Chan et al., 2024)](https://arxiv.org/abs/2410.07095)
+- [ARC-AGI](https://arcprize.org/)
+- [HarmBench (Mazeika et al., 2024)](https://arxiv.org/abs/2402.04249)
+- [AIR-Bench (Zeng et al., 2024)](https://arxiv.org/abs/2407.17436)
+- [GCG Jailbreaking (Zou et al., 2023)](https://arxiv.org/abs/2307.15043)
+- [HELM](https://crfm.stanford.edu/helm/) — Stanford CRFM 的标准化评测平台
+- [CS336 Course Website](https://cs336.stanford.edu/)
