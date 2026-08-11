@@ -61,7 +61,8 @@
 | [第12章 评估与基准测试](chapter12/chapter12_评估与基准测试.md) | MMLU、HumanEval、HELM、CEval、AlpacaEval、Arena 排名 | [作业6](../coursework/assignment6-evaluation/) | ✅ |
 | [第13章 大模型的基本训练流程](chapter13/chapter13_第十三章大模型的基本训练流程.md) | Pre-training、SFT、DPO、RLHF PPO 流程、Alignment Tax | [作业5](../coursework/assignment5-alignment/) | ✅ |
 | [第14章 可验证奖励的强化学习](chapter14/chapter14_可验证奖励的强化学习.md) | GRPO、Rule-based Verifier、Outcome/Process Reward、RLVR 与 R1 训练方案 | [作业5](../coursework/assignment5-alignment/) | ✅ |
-| [第15章 扩展内容](chapter15/) | 1. LLM 推理的本质是什么？（黎又榛）<br>2. LeCun 眼中 LLM 的未来在哪里？（黎又榛、jiangyinhe、李盛康、徐虎） | - | 🔄 |
+| [第15章 多模态模型](chapter15/chapter15_多模态模型.md) | 从 CLIP 到 Omni Model：CLIP/SigLIP、LLaVA、Qwen-VL、Chameleon | - | ✅ |
+| [第16章 扩展内容](chapter16/) | 1. 什么是LLM推理？（黎又榛）<br>2. LLM 的未来 - Lecun（黎又榛、jiangyinhe、李盛康、徐虎）| - | 🔄 |
 
 > 状态图例说明：✅ 已完成  🔄 更新中	📝 待完善	🚧 筹备中	 ⏸️ 暂缓	
 
@@ -112,8 +113,9 @@ CS336-Chinese-co-construction/
 │   ├── chapter11/          # 数据工程
 │   ├── chapter12/          # 评估与基准测试
 │   ├── chapter13/          # 大模型的基本训练流程
-│   └── chapter14/          # 可验证奖励的强化学习
-│   └── chapter15/          # 前沿扩展内容
+│   ├── chapter14/          # 可验证奖励的强化学习
+│   ├── chapter15/          # 多模态模型
+│   └── chapter16/          # 前沿扩展内容
 ├── coursework/              # 实践作业
 │   ├── assignment1-basics/        # 作业1：手搓大模型
 │   ├── assignment2-systems/       # 作业2：系统优化
@@ -162,7 +164,7 @@ CS336-Chinese-co-construction/
       <td>
          <a href="https://github.com/xuhu0115"><img width="70" height="70" src="https://github.com/xuhu0115.png?s=40" alt="pic"></a><br>
          <a href="https://github.com/xuhu0115">徐虎</a> 
-        <p>项目负责人<br> Datawhale 成员<br> 上海交通大学 <br> 负责内容：第1、3、9、12、14章；作业5、6；全文内容审核</p>
+        <p>项目负责人<br> Datawhale 成员<br> 上海交通大学 <br> 负责内容：第1、3、9、12、14、15章；作业5、6；全文内容审核</p>
       </td>
       <td>
          <a href="https://github.com/kangkang-Adam"><img width="70" height="70" src="https://github.com/kangkang-Adam.png?s=40" alt="pic"></a><br>
@@ -182,7 +184,8 @@ CS336-Chinese-co-construction/
 
 - 感谢 [@aimetrics](https://github.com/aimetrics) 在[作业1 的 train.py](https://github.com/datawhalechina/diy-llm/blob/main/coursework/assignment1-basics/train.py) 中，增加了在 Macbook 设备上的 MPS 支持
 - 感谢[@FuTseYi](https://github.com/FuTseYi)(Datawhale成员)对网站迁移、部署和重构的支持
-- 感谢[@jiangyinhe](https://github.com/jiangyinhe)参与第 15 章扩展内容《LLM 的未来 - Lecun》的整理
+- 感谢[@jiangyinhe](https://github.com/jiangyinhe)参与第 16 章扩展内容《LLM 的未来 - Lecun》的整理
+- 第 15 章《多模态模型》基于 Stanford CS336 (Spring 2026) Lecture 17 整理，感谢课程团队提供的优质内容
 
 *注：我们感谢每一位为项目做出贡献的开发者！*
 

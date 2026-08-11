@@ -28,7 +28,13 @@ const enNav = [
   },
   {
     text: 'Extra Chapters',
-    items: [{ text: 'Chapter 15', link: '/en/chapter15/什么是LLM推理' },{ text: 'Chapter 15', link: '/en/chapter15/LLM的未来LeCun' }]
+    items: [
+      { text: 'Chapter 15 Multimodal Models', link: '/en/chapter15/chapter15_多模态模型' },
+      { text: 'Chapter 16 Extended Content', items: [
+        { text: '1. What is LLM Reasoning？', link: '/en/chapter16/chapter16_什么是LLM推理' },
+        { text: '2. LLM Future - LeCun', link: '/en/chapter16/chapter16_LLM的未来LeCun' },
+      ]},
+    ]
   },
 ]
 
@@ -52,9 +58,10 @@ const enSidebar = {
         { text: 'Chapter 12 Evaluation and Benchmarks', link: '/en/chapter12/chapter12_评估与基准测试' },
         { text: 'Chapter 13 Basic Training Pipeline for LLMs', link: '/en/chapter13/chapter13_第十三章大模型的基本训练流程' },
         { text: 'Chapter 14 Reinforcement Learning with Verifiable Rewards', link: '/en/chapter14/chapter14_可验证奖励的强化学习' },
-        { text: 'Chapter 15 Extended Content', items: [
-          { text: '1. What is LLM reasoning？', link: '/en/chapter15/什么是LLM推理' },
-          { text: '2. LLM Future - LeCun', link: '/en/chapter15/LLM的未来LeCun' },
+        { text: 'Chapter 15 Multimodal Models', link: '/en/chapter15/chapter15_多模态模型' },
+        { text: 'Chapter 16 Extended Content', items: [
+          { text: '1. What is LLM Reasoning?', link: '/en/chapter16/chapter16_什么是LLM推理' },
+          { text: '2. LLM Future - LeCun', link: '/en/chapter16/chapter16_LLM的未来LeCun' },
         ]},
       ],
     },
@@ -89,7 +96,13 @@ const zhNav = [
   },
   {
     text: '扩展内容',
-    items: [{ text: '第15章-1.什么是LLM推理', link: '/chapter15/什么是LLM推理' },{ text: '第15章-2.LLM的未来LeCun', link: '/chapter15/LLM的未来LeCun' }],
+    items: [
+      { text: '第15章 多模态模型', link: '/chapter15/chapter15_多模态模型' },
+      { text: '第16章 扩展内容', items: [
+        { text: '1. 什么是LLM推理？', link: '/chapter16/chapter16_什么是LLM推理' },
+        { text: '2. LLM 的未来 - Lecun', link: '/chapter16/chapter16_LLM的未来LeCun' },
+      ]},
+    ],
   },
 ]
 
@@ -113,9 +126,10 @@ const zhSidebar = {
         { text: '第12章 评估与基准测试', link: '/chapter12/chapter12_评估与基准测试' },
         { text: '第13章 大模型的基本训练流程', link: '/chapter13/chapter13_第十三章大模型的基本训练流程' },
         { text: '第14章 可验证奖励的强化学习', link: '/chapter14/chapter14_可验证奖励的强化学习' },
-        { text: '第15章 扩展内容', items: [
-          { text: '1. 什么是LLM推理？', link: '/chapter15/什么是LLM推理' },
-          { text: '2. LLM 的未来 - Lecun', link: '/chapter15/LLM的未来LeCun' },
+        { text: '第15章 多模态模型', link: '/chapter15/chapter15_多模态模型' },
+        { text: '第16章 扩展内容', items: [
+          { text: '1. 什么是LLM推理？', link: '/chapter16/chapter16_什么是LLM推理' },
+          { text: '2. LLM 的未来 - Lecun', link: '/chapter16/chapter16_LLM的未来LeCun' },
         ]},
       ],
     },

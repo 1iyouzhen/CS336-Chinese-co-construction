@@ -1,744 +1,630 @@
-# 第十三章：大模型的基本训练流程
+# Chapter 13: Basic Training Pipeline for Large Language Models
 
-经过之前的章节，我们基本掌握了模型的结构，pytorch和如何推理等等，在这节课我们重点介绍一下模型的训练过程。主要介绍大语言模型（LLM）的训练过程，在这个过程中我们会介绍预训练、监督微调、强化学习方法等，主要讲解模型SFT的过程，简单介绍预训练和强化学习方法。**本节课会穿插扩展2025年cs336没有的内容，在下一章详细介绍强化学习方法。**
+After the previous chapters, we have basically mastered model structure, PyTorch, and how to do inference. In this chapter, we focus on the training process of large language models (LLMs). We will cover pre-training, supervised fine-tuning (SFT), and reinforcement learning methods, with emphasis on the SFT process and brief introductions to pre-training and RL methods. **This chapter will intersperse content not in the 2025 CS336 course; the next chapter will cover reinforcement learning methods in detail.**
 
-# 本节学习目标
+## Learning Objectives
 
-在进入具体分析之前，我们先明确本节的关注重点。本节将围绕大语言模型的核心训练流程展开，主要包括：
+Before diving into specific analysis, let's clarify the focus of this section. This section will revolve around the core training pipeline of large language models, mainly covering:
 
-1. [理解预训练（Pre-training）的范式：next‑token 预测、数据规模与 GPT‑3 的里程碑意义](#132-大模型训练的第一个阶段预训练pre-trainingpt)
-2. [掌握监督微调（SFT）的作用、数据格式（Alpaca / ChatML）以及高质量专家数据对模型行为的关键影响](#133大模型训练的第二个阶段监督微调sftsupervised-fine-tuning)
-3. [学习 RLHF 的三阶段流程：SFT → 奖励模型训练 → PPO 强化学习微调，并理解 PPO 的核心机制（剪切、重要性采样、优势函数）](#134-第三个阶段对齐人类偏好)
-4. [掌握 DPO 算法的核心思想：将偏好优化转化为带权重的监督学习，了解 SimPO 与长度归一化等变体](#136-dpo算法direct-preference-optimizationdpo直接偏好优化)
+1. [Understand the pre-training paradigm: next-token prediction, data scale, and the milestone significance of GPT-3](#132-large-model-training-first-stage-pre-training-pt)
+2. [Master the role of Supervised Fine-Tuning (SFT), data formats (Alpaca / ChatML), and the critical impact of high-quality expert data on model behavior](#133-large-model-training-second-stage-sft-supervised-fine-tuning)
+3. [Learn the three-stage RLHF pipeline: SFT → Reward Model training → PPO RL fine-tuning, and understand PPO's core mechanisms (clipping, importance sampling, advantage function)](#134-third-stage-aligning-with-human-preferences)
+4. [Master the core idea of the DPO algorithm: transforming preference optimization into weighted supervised learning; understand variants like SimPO and length normalization](#136-dpo-algorithm-direct-preference-optimization)
 
-完成本章学习后，你将能够：系统区分预训练、SFT、RLHF 与 DPO 的训练目标与数据需求，理解 PPO 与 DPO 各自的优缺点及适用场景，并能根据实际资源与任务需求选择合适的对齐方法，从而构建更安全、更符合人类偏好的大语言模型。
+After completing this chapter, you will be able to: systematically distinguish the training objectives and data requirements of pre-training, SFT, RLHF, and DPO; understand the advantages, disadvantages, and applicable scenarios of PPO and DPO; and choose appropriate alignment methods based on actual resources and task requirements to build safer, more human-preference-aligned large language models.
 
-## 13.1. 机器学习的常见的学习方式
+## 13.1 Common Learning Approaches in Machine Learning
 
-### 13.1.1监督学习（Supervised Learning）SS
+### 13.1.1 Supervised Learning (SL)
 
-监督学习是机器学习中**最常用、最直接**的一种范式：
+Supervised learning is the **most commonly used and most direct** paradigm in machine learning:
 
-给定一组**输入–输出成对**的标注样本 $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$
-目标是让模型学会一个映射函数 $f: x \mapsto y$ 
-使得对新输入 $x_{\text{new}}$ 能尽可能准确地预测出对应的输出 $y_{\text{new}}$。
+Given a set of **input-output paired** labeled samples $(x_1, y_1), (x_2, y_2), \dots, (x_n, y_n)$, the goal is to have the model learn a mapping function $f: x \mapsto y$ so that for a new input $x_{\text{new}}$, it can predict the corresponding output $y_{\text{new}}$ as accurately as possible.
 
-监督学习是有**有“标准答案”**，每个样本的输出 $y$ 都是人工或可靠系统事先标注好的。 并且**损失可计算**，利用预测值 $\hat{y}$ 与真值 $y$ 之间的误差（交叉熵、MSE 等）可直接作为优化信号。有监督的**目标明确**，最小化训练集上的预测误差，同时兼顾泛化能力（防止过拟合）。
+In supervised learning, there is a **"standard answer"** — the output $y$ for each sample is pre-annotated by humans or reliable systems. Furthermore, the **loss is computable** — the error between the predicted value $\hat{y}$ and the true value $y$ (cross-entropy, MSE, etc.) can be directly used as the optimization signal. The **objective is clear**: minimize the prediction error on the training set while also ensuring generalization ability (preventing overfitting).
 
-**典型任务**常见的有**分类任务**（离散标签）比如图像识别：输入图片到 “猫 / 狗 / 车”，**回归任务**（连续值） 房价预测：房屋特征到价格等等，有监督学习就是“老师把答案写在卷子上”，模型通过对比自己的答案和标准答案不断纠正错误（通过一些算法，比如梯度下降），从而学会对新题目给出正确结果。它的数据集是有**标准答案**的，标准答案就是一个**监督信号**，所以叫做有监督学习。
+**Typical tasks** commonly include **classification tasks** (discrete labels) such as image recognition — input an image and output "cat / dog / car"; and **regression tasks** (continuous values) such as house price prediction — from housing features to price. Supervised learning is like "the teacher writes the answer on the test paper," and the model continuously corrects its errors by comparing its own answers with the standard answers (through algorithms like gradient descent), thereby learning to produce correct results for new questions. Its dataset has a **standard answer**, and the standard answer serves as the **supervision signal**, hence the name supervised learning.
 
----
+### 13.1.2 Unsupervised Learning
 
-### 13.1.2 无监督学习（Unsupervised Learning）
+**No "standard answer," only "raw materials" — the original data itself.** The algorithm's goal is not to predict a specific label, but to **discover hidden structures or distribution characteristics from the data itself.**
 
-**没有“标准答案”、只有“原材料”即原始数据**，算法的目标不是预测某个具体标签，而是**从数据本身里挖掘出隐藏的结构或分布特征**。
+Unlike supervised learning where inputs are $(x_1, y_1), (x_2, y_2),..., (x_n, y_n)$ with labels, unsupervised learning has no labels — you only **give input x, not output y**, and let the machine find patterns, similarities, low-dimensional representations, or generate new samples on its own. Common unsupervised tasks include **clustering**, which automatically groups similar samples together. Unsupervised learning is like "not giving the answers, only the test paper," letting the machine sort the questions, find patterns, highlight key points, and even generate a new test paper from examples.
 
-与有监督学习相比，有监督学习的输入为 $(x_1, y_1), (x_2, y_2),...., (x_n, y_n)$ ，它是有标签的，比如说实现一个猫图识别，判断图片是否是猫，是则输出1，不是则输出0，0和1就是标签。输入的 $y$ 就是标签。而无监督学习是没有标签的
+**Self-supervised learning** is a subset of unsupervised learning. It **generates pseudo-labels from "unlabeled" raw data** and then trains in a "supervised" manner. Thus, it belongs to the unsupervised family while having a flavor of "pretending to be supervised." Examples include LLM pre-training, BERT's **Masked Language Modeling**, and contrastive learning.
 
-**只给输入 x，不给输出 y**，让机器自己找规律、找相似、找低维表示或生成新样本。常见的无监督任务就有**聚类（Clustering）** 把相似样本自动分到一组。  无监督学习就是**不给答案、只给卷子**，让机器自己把题目分堆、找规律、画重点，甚至还能照猫画虎出一份新卷子。
+The advantage of unsupervised learning is that it **requires no annotation** — no expensive labeling is needed, and data can be used as-is; it often serves as a pre-training or exploration tool. In ML/deep learning, labeled data has always been a challenge, often requiring costly human annotation. But unsupervised learning can save engineers the cost of labeling. Of course, not all tasks can be tackled with unsupervised approaches — it ultimately depends on the specifics and facts of the situation.
 
-**自监督学习**（Self-supervised Learning）是无监督学习的一个子集，它**把“没有标签”的原始数据自己生成伪标签**，然后再按“有监督”的方式去训练。因此它既属于无监督大家庭，又带上了“假装有监督”的味道。比如说大模型的预训练，还有Bert的**Masked Language Modeling**，还有对比学习等等
+### 13.1.4 Reinforcement Learning (RL)
 
-无监督学习的优点就是它**不需要标注，无需昂贵标注，数据拿来就能用；常作为预训练或探索工具**。在机器学习或者说深度学习中有标签的数据一直都是一个难题，他们往往都需要昂贵的人工标注，但是无监督学习能帮工程师省下标注的费用，当然不是所有的任务都能使用无监督的。还得回到具体，实事求是。
+Reinforcement learning is more complex and will be covered in detail in the next chapter. RL uses delayed, sparse reward signals to let an agent, through trial-and-error and value estimation in sequential decision-making, figure out for itself the most profitable long-term action strategy. If supervised learning is like the teacher giving the standard answer for each question, and unsupervised learning is no teacher — you find structure and patterns yourself — then reinforcement learning is like the teacher only giving a final grade (reward) at the end of the term, and the student has to fumble through each step to figure out what was right and what was wrong.
 
----
+## 13.2 Large Model Training First Stage: Pre-training (PT)
 
-### 13.1.4 强化学习（Reinforcement Learning）
+The first large language model to explicitly adopt the "pre-training + downstream fine-tuning" paradigm was GPT-1, released by OpenAI in 2018. It systematically applied the "unsupervised pre-training to supervised fine-tuning" route for the first time: first performing large-scale unsupervised pre-training on 5 GB of BooksCorpus using an **autoregressive language model objective**, and then fine-tuning on small amounts of labeled data for specific tasks, significantly outperforming models that could only be trained from scratch at the time.
 
-强化学习比较复杂，我们会在下一章中详细介绍。强化学习是用延迟、稀疏的奖励信号，让智能体在序列决策中通过试错+价值估计，自己摸索出长期最赚的行动策略。如果说有监督学习是老师给每题标准答案，无监督学习就是没老师，自己找结构和规律，强化学习就是老师只期末给总评（奖励），学生全程自己摸索哪一步对哪一步错。
+**LLM pre-training** is about letting the model "self-learn" general knowledge on massive unlabeled data to obtain a powerful foundation, and then using a small amount of labeled data to fine-tune for specific tasks. It is essentially an extreme amplification of transfer learning: pushing "learning general representations from data" to the extreme.
 
-## 13.2 大模型训练的第一个阶段：预训练（Pre-training，PT）
+At that time, language models lacked a **pre-training paradigm**, and each model required enormous time and human effort to obtain training data. While the **pre-training + task-specific fine-tuning** paradigm was already emerging, it first appeared in image tasks on **ImageNet** — engineers would take a model already trained on massive image datasets and continue training with **small batches of labeled data**. With only **small amounts of data**, a very good model could be trained. We only need to train **a pre-trained model** with far less data than before to easily apply to various downstream tasks.
 
-第一个明确采用“预训练 + 下游微调”这一范式的大型语言模型是 2018 年 OpenAI 发布的 GPT-1。它首次把“无监督预训练 到 有监督微调”的路线系统化：先在 5 GB 的 BooksCorpus 上用**自回归语言模型目标**做大规模无监督预训练，再在少量标注数据上微调具体任务，从而显著超越当时只能从头训练的模型。
+### 13.2.1 The LLM Pre-training Paradigm
 
-**大模型的预训练**（Pre-training）是让模型 先在海量无标注数据上“自学”通用知识，得到一个强大的底座，然后再用少量标注数据去微调解决具体任务。它本质上是迁移学习的极端放大版：把“从数据里学通用表示”这一步做到极致。
+Large models are typically **decoder-only** in structure. The **LLM pre-training paradigm** is to continuously predict the next word — **next-token prediction**. The final trained result is a continuation model that can continuously write based on input, and at this point the model has already acquired a great deal of prior knowledge through pre-training.
 
-当时语言模型没有**预训练的范式**，每个模型训练都要耗费大量时间和人力去获取训练数据，当时已经出现了**预训练 + 特定任务微调**的范式，但是这是先在图像任务上出现：**ImageNet**，工程师们已经在海量图像数据集上训练过的ImageNet上再在增加**小批量标注数据**继续训练。只需要**少量数据**就训练出一个很好的模型。我们只需要使用远比之前少的数据训练**一个预训练模型**就可以在各种下游任务轻松应用。
+The model's input and labels are used together to train the model to predict the next word or character.
 
-### 13.2.1 大模型预训练的范式
+The pre-training **target sequence** is a string. For the input sequence $[x_1, x_2, \dots, x_{t-1}]$, the target (label) is the next word in the sequence $x_t$. **The model's objective** is to learn how to accurately predict the probability distribution $P(x_t | x_1, x_2, \dots, x_{t-1})$ of the next word $x_t$ given the input sequence $[x_1, x_2, \dots, x_{t-1}]$.
 
-大模型通常都是 **decoder-only** 的结构，大模型的**预训练的范式**是不断的预测下一个词。是**next-token**预测。最终训练得到一个续写模型，能根据输入来不断续写，此时大模型已经通过预训练获取到了许多先验的知识。
+Suppose we have a text sequence: `"自然语言处理是人工智能的一个重要分支"` (Natural language processing is an important branch of artificial intelligence). We split this sequence into subsequences of length 4 for training (in practice, a tokenizer would need to be trained for tokenization first):
 
-模型的输入（input）和标签（label）它们共同用于训练模型以预测下一个词或字符。
+- **Input**: `["自然", "语言", "处理"]` → **Label**: `"是"`
+- **Input**: `["语言", "处理", "是"]` → **Label**: `"人工智能"`
+- **Input**: `["处理", "是", "人工智能"]` → **Label**: `"的一个"`
+- **Input**: `["是", "人工智能", "的一个"]` → **Label**: `"重要分支"`
 
+**This is the next-token pre-training paradigm.**
 
-预训练的**目标序列**是一串字符串，对于输入序列 $[x_1, x_2, \dots, x_{t-1}]$，目标（标签）是序列中的下一个词 $x_t$。**模型的目标**是学习如何根据输入序列 $[x_1, x_2, \dots, x_{t-1}]$ 准确地预测出下一个词 $x_t$ 的概率分布 $P(x_t | x_1, x_2, \dots, x_{t-1})$。
+### 13.2.2 Data Scale for LLM Pre-training
 
-假设我们有一个文本序列：
+LLM pre-training data is obtained by crawling public web pages, books, papers, code, and multilingual corpora, then performing deduplication and data cleaning to produce the training vocabulary. An 8B model like Qwen3-8B uses 36T tokens. **Larger models only involve more parameters and larger data scales.** Current large models typically use around 50-200 T tokens.
 
-```markdown
-"自然语言处理是人工智能的一个重要分支"
-```
+LLM pre-training data **essentially encompasses all of human knowledge**, so the model contains extremely rich knowledge. However, at this point the model is only a **continuation model** — you give it a piece of text, and it will continue writing, because it was trained by continuously predicting the next character. To better leverage the model's capabilities, an SFT process is still needed to obtain the Q&A-style model we have today that can handle various tasks.
 
-我们将这个序列分词成长度为4的子序列（假设，实际还需要训练分词器进行分词）进行训练。
+Although the pre-training scale is enormous, the model **cannot follow instructions well** and lacks productization value. Pre-trained models need specific post-training processing to become practical and safe. We expect the model to **follow complex instructions**, possess practical utility, and simultaneously have enhanced **safety** to prevent misuse and harmful content generation.
 
-输入和标签的对应关系：
+### 13.2.3 GPT-3 (Generative Pre-trained Transformer 3)
 
-**输入序列**：`["自然", "语言", "处理"]`
-**预测标签**：`"是"`
+GPT-3 (Generative Pre-trained Transformer 3) is an **autoregressive language model** released by OpenAI in July 2020. Its emergence brought "prompting as programming" into reality and is considered a milestone of the large model era. With **175 billion parameters + autoregressive LM + pure prompting**, GPT-3 was the first to prove: **"As long as it's large enough, a model can understand tasks and produce plausible answers without any gradient updates,"** paving the way for later InstructGPT, ChatGPT, and GPT-4.
 
-**输入序列**：`["语言", "处理", "是"]`
-**预测标签**：`"人工智能"`
+At its core, GPT-3 is a **"continuation" model** — its sole training objective is **"given the preceding text, predict the next token"** (autoregressive LM). Whether the prompt is written as Q&A, translation, dialogue, or code completion, it treats everything as **"the text before hasn't finished — let me continue it."**
 
-**输入序列**：`["处理", "是", "人工智能"]`
-**标签**：`"的一个"`
+GPT-3 is a 175B-parameter model trained on approximately 570GB of text. It was the first to set the parameter count so high — a very bold attempt. **The Scaling Law became "visible to the naked eye" for the first time** — jumping from GPT-2's 1.5B to 175B, a 100× parameter increase, resulting in **emergent** downstream task capabilities — solving translation, Q&A, arithmetic, and code completion tasks through prompting alone.
 
-**输入序列**：`["是", "人工智能", "的一个"]`
-**标签**：`"重要分支"`
+| Task | Metric | Score |
+|------|--------|-------|
+| English Reading Comprehension (RACE) | Accuracy | 86.8%, surpassing the human average of 73% |
+| Translation (WMT'14 French to English) | BLEU | 43.9, close to the best supervised systems at the time |
+| Arithmetic (2-5 digit addition) | Accuracy | Improved from 0% to 80% with increasing examples |
+| Code Completion (HumanEval) | Pass rate | 37% (improved to 72% after Codex further fine-tuning) |
 
-**这就是next-token的预训练范式。**
+Of course, as an early product, its **hallucinations were severe** — it would confidently fabricate news and fake citations. And **bias was significant**, with gender, racial, and religious stereotypes output directly with prompts.
 
----
+#### How to Use GPT-3
 
-### 13.2.2 大模型的预训练的数据规模
-
-大模型的预训练数据通过抓取公开网页、书籍、论文、代码、多语种语料，再进行去重、数据清洗得到，训练词表。一个8B的模型比如Qwen3-8B就会用到36T tokens，**更大的模型只会随着参数量，数据的规模变得更大**。现在的大模型大概会用到50–200 T tokens。
-
-大模型预训练的数据**基本包含人类的所有知识**，因此模型蕴含的知识是十分丰富的，但是模型现在只是一个**续写模型**，你给出一段文本，模型就会进行续写，因为它是不断预测下一个字来训练的。想要更好的利用模型的能力还需要一个SFT的流程才能得到今天问答形式的大模型，可以处理各种任务。
-
-虽然预训练规模巨大，但模型**不能很好地遵循指令**，缺乏产品化价值。预训练模型需要经过特定的训练后处理，才能变得实用和安全。
-
-我们期望模型能够**遵循复杂指令**，具备实用性。同时增强**模型的安全性**，防止滥用和生成有害内容。
-
----
-
-### 13.2.3 GPT3（Generative Pre-trained Transformer 3）
-
-GPT-3（Generative Pre-trained Transformer 3）是 OpenAI 于 2020 年 7 月发布的 **自回归语言模型**，它的出现把“提示即编程”带进现实，被视为大模型时代的里程碑。GPT-3 用 **1750 亿参数 + 自回归语言模型 + 纯提示** 第一次证明：  **“只要够大，模型就能在没有任何梯度更新的情况下，看懂任务并给出像模像样的答案。”**，为后来的 InstructGPT、ChatGPT、GPT-4 铺平道路。
-
-GPT-3 在骨子里就是一个 **“续写”模型**——它的训练目标只有 **“给定上文，预测下一个 token”**（自回归语言模型）。无论把提示写成问答、翻译、对话还是代码补全，它都当成 **“前面这段话还没完，我来续写”** 来处理。
-
-GPT3是一个175B参数量的模型，在大约570GB的文本上进行训练。它是头一个把参数量设置设置非常大的模型，这是一个非常大胆的尝试。**规模定律第一次“肉眼可见”**  从 GPT-2 的 1.5 B 跳到 175 B，参数 ×100，结果下游任务出现 **“涌现”**——只靠提示就能解决翻译、问答、算术、代码补全等任务。
-
-| 任务 | 指标 | 成绩 |
-|---|---|---|
-| 英文阅读理解（RACE） | 准确率 | 86.8 %，超越人类平均 73 % |
-| 翻译（WMT’14 法到英） | BLEU | 43.9 ，接近当时最佳有监督系统 |
-| 数学加法（2～5 位数） | 准确率 | 随示例数从 0 % 提升到 80 % |
-| 代码补全（HumanEval） | 通过率 | 37 %（Codex 继续微调后提到 72 %） |
-
-当然作为早期产物，它的**幻觉严重**，会一本正经地编新闻、假引用。并且 **偏见大**，性别、种族、宗教刻板印象随提示直接输出。  
-
-#### 那如何使用GPT3
-
-GPT3是一个预训练大模型，是一个具备续写能力的模型，要使用它要比现在的模型麻烦的多。
-
-首先要将输入改动用户把任务包装成自然语言上下文，例如： 
+GPT-3 is a pre-trained large model with continuation capability. Using it was far more cumbersome than current models. First, the input had to be modified — the user had to wrap the task in natural language context, for example:
 
 ```
 Translate English to French:
-sea otter 
-```  
+sea otter
+```
 
-形式上像“翻译”，本质仍是“补全”。
+It looks like "translation" in form, but the essence is still "completion."
 
-GPT3在当时是**卓越却不够实用**的系统，尽管预训练规模和算力惊人，但既**不能遵循指令**，也缺乏产品化价值，再到突然横空出世的ChatGPT。这个能执行各种惊人任务、**遵循复杂指令的系统**，彻底改变了社会生态。可能大多数同学从未接触过可控生成或早期文本生成系统，但现代指令遵循模型的表现确实令人惊叹，模型能理解嵌套复合指令，结合代码能力直接输出 matplotlib可视化代码。各位可能已对此习以为常，但细想之下，ChatGPT能同时执行十条指令的设定依然堪称奇迹，而实现这些的**重要步骤就是SFT**。
+GPT-3 at the time was a **remarkable but not yet practical** system. Despite astonishing pre-training scale and computing power, it could neither **follow instructions** nor had productization value. Then ChatGPT suddenly emerged — a system capable of executing various amazing tasks and **following complex instructions**, completely transforming the social landscape. Most of you may have never interacted with controllable generation or early text generation systems, but the performance of modern instruction-following models is truly astonishing — models can understand nested, composite instructions and, combined with coding ability, directly output matplotlib visualization code. You may have taken this for granted, but when you think about it, ChatGPT's ability to simultaneously execute ten instructions is still a miracle. And the **important step to achieving this is SFT.**
 
-## 13.3大模型训练的第二个阶段：监督微调（SFT，Supervised Fine-Tuning）
+## 13.3 Large Model Training Second Stage: SFT (Supervised Fine-Tuning)
 
-### 13.3.1 SFT的定义与作用：
+### 13.3.1 Definition and Role of SFT
 
-通过专家演示数据对预训练模型进行微调，使其能够**模仿SFT数据**中的行为。它也是构建指令遵循模型的**第一步**。SFT是监督微调，通过预训练大模型已经掌握了通用的知识，同时通过大规模的预训练，我们避免了大规模的数据标注，只需要一些远比预训练数据集**小的多**的SFT数据集（10 k～100 k），这其实就是预训练的意义之一。SFT数据通常都是问答的形式，Q...，A....的形式，通过交叉熵损失等等损失函数来训练，使得模型学到SFT数据的格式，增加了模型的可用性。
+SFT fine-tunes a pre-trained model using expert demonstration data to enable it to **mimic the behavior in SFT data**. It is the **first step** in building an instruction-following model. SFT is supervised fine-tuning — the pre-trained large model has already mastered general knowledge, and through large-scale pre-training, we have avoided massive data annotation. We only need an SFT dataset **far smaller** (10k-100k) than the pre-training dataset, which is precisely one of the purposes of pre-training. SFT data is typically in Q&A format — Q..., A... — and is trained via loss functions such as cross-entropy, enabling the model to learn the format of SFT data and increasing the model's usability.
 
-**预训练底座模型**有许多**缺点**，比如只会“续写”，不会“问答” ，可能会输出**有害或者偏见**内容， 答案散漫，跑题，**有严重的幻觉，也不会角色扮演**、工具调用。
+**Pre-trained base models** have many **shortcomings**: they can only "continue," not "answer questions"; they may output **harmful or biased** content; their answers are loose and off-topic; they have **severe hallucinations**; they cannot role-play or call tools.
 
-#### 我们**期待的模型**长什么样子呢？
+#### What Does Our **Ideal Model** Look Like?
 
-我们期待模型学会**指令格式**，**QA的形式来使用模型**，比如让模型写一篇鲁迅风格的文章，李白风格的诗。我们说一，模型就不会回答二。学会会SFT中的回答格式，学会工具调用。
+We expect the model to learn the **instruction format**, to be used in a **Q&A format**. For example, having the model write an article in Lu Xun's style or a poem in Li Bai's style. When we say "one," the model should not answer "two." It should learn the response format from SFT and learn to call tools.
 
-模型还会**会拒绝有害内容**，当用户使用大模型生成一些有害内容的时候，大模型会学会拒绝。学
-这些都可以通过SFT实现。
+The model will also **refuse harmful content** — when a user uses the model to generate harmful content, the model will learn to refuse. All of this can be achieved through SFT.
 
----
+### 13.3.2 SFT Data Formats
 
-### 13.3.2 SFT数据的格式
+The core of SFT (Supervised Fine-Tuning) data is to "show the model **standard human-written answers**" and let it imitate. There are two main formats:
 
-SFT（Supervised Fine-Tuning）数据的核心是“给模型看**人写的标准回答**”，让它模仿。主流格式就两类：
+#### Alpaca Format (Single-turn / Instruction)
 
-#### Alpaca 格式（单轮/指令）
-
-每行一条 JSON，字段一目了然：
+Each line is one JSON entry, with clear fields:
 
 ```json
 {
-  "instruction": "翻译成英文",
+  "instruction": "Translate into English",
   "input": "你好",
   "output": "Hello"
 }
 ```
 
-`instruction` 说明任务  
-`input` 放用户问题（可为空）  
-`output` 是**人工写的理想答案**  
+`instruction` specifies the task; `input` holds the user question (can be empty); `output` is the **human-written ideal answer**. The file overall is `.jsonl` — one entry per line, and during training, cross-entropy loss is only computed over the `output` portion.
 
-文件整体是 `.jsonl`：一行一条，训练时只计算 `output` 部分的交叉熵损失 。
+#### ChatML / ShareGPT Format (Multi-turn Dialogue)
 
----
-
-#### ChatML / ShareGPT 格式（多轮对话）
-
-把多轮对话按角色堆成数组，同样一行一条：
+Multi-turn dialogues are stacked into arrays by role, similarly one entry per line:
 
 ```json
 {
   "messages": [
-    {"role": "system", "content": "你是客服助手"},
-    {"role": "user", "content": "怎么修改收货地址？"},
-    {"role": "assistant", "content": "请在订单详情页点击…"}
+    {"role": "system", "content": "You are a customer service assistant"},
+    {"role": "user", "content": "How do I change the shipping address?"},
+    {"role": "assistant", "content": "Please click in the order details page..."}
   ]
 }
 ```
 
-它支持任意轮次，训练时只对 **assistant** 角色的 token 计算损失 。
+It supports any number of turns, and during training, loss is only computed for tokens in the **assistant** role.
 
-SFT 数据就是“**问题 + 人类示范答案**”的配对，单轮用 Alpaca，多轮用 ChatML，格式简单，关键是答案要干净、安全、风格一致。
+SFT data is essentially "**question + human-demonstrated answer**" pairs — single-turn uses Alpaca, multi-turn uses ChatML. The format is simple; the key is that answers must be clean, safe, and stylistically consistent.
 
----
+### 13.3.3 High-Quality Expert Demonstration Data is Crucial for SFT Effectiveness
 
-### 13.3.3 高质量的专家演示数据对SFT效果至关重要
+Many papers have demonstrated the importance of **high-quality SFT data**. The SFT stage differs from the pre-training stage: pre-training requires **massive data** — the more the better. Under this inertia of thinking, you might think SFT data is also "more is better," overlooking the importance of quality. Though the data volume is small, it can significantly shape model behavior. To imitate expert demonstrations, you must have high-quality expert demonstration data.
 
-有许多论文都论证**高质量SFT数据**的重要性，SFT阶段和预训练阶段不同，预训练需要**庞大的数据**，数据越多越好，在这种思维惯性下，你可能会任务SFT数据也是越多越好，忽略的质量的重要性。数据量虽少，但能显著塑造模型行为。若要模仿专家演示，就必须拥有高质量的专家演示数据
+Many papers mention this phenomenon: MergeIT (arXiv2503.00034) used a small model to filter out 6k high-quality instructions, then performed weight interpolation with the full-amount model, and ultimately LLaMA-7B, with only 1/11 of the data, **matched 65k full-amount training** on AlpacaEval. "From Quantity to Quality" (arXiv:2308.12032, accepted at NAACL 2024) conducted experiments showing that 9k carefully selected samples could consistently outperform the original 50k full-amount trained same model on 5 public benchmarks, with complete ablation experiments and both code and data open-sourced.
 
-许多论文都提到这种现象：MergeIT（arXiv2503.00034）用小模型筛出6k高质量指令，再与全量模型做权重插值，最终 LLaMA-7B 仅用1/11数据就在 AlpacaEval 上**追平65k全量训练**，From Quantity to Quality（arXiv:2308.12032，已被 NAACL 2024 接收）做了实验用 9 k 精选样本即可在 5 个公开benchmark上持续优于原始50k全量训练的同款模型，且消融实验完整，代码与数据均已开源。
+The Li Fei-Fei team's S1 paper published in 2025 mentions: using **1,000** high-quality reasoning samples (s1K) distilled from Gemini-2.0-Flash-Thinking, fine-tuning Qwen2.5-32B-Instruct for 26 minutes (16×H100) with supervised fine-tuning, combined with a "budget forcing" decoding strategy, could match or even slightly exceed OpenAI-o1-preview on math benchmarks like AIME24, with a training cloud cost of ≈ $50. They collected 59k problems from 16 math/science problem banks, used a **triple filtering of difficulty/diversity/quality** to distill Gemini's chain of thought, and the final s1K had only 1,000 samples. And this was pure supervised fine-tuning, **proving that 1k high-quality demonstrations beat tens of thousands of ordinary annotations**, echoing the "Less is More" trend. The concept of high-quality data is very complex and requires careful justification of its construction methods. Finally, it's worth noting that at this stage, even small amounts of data can significantly change model behavior patterns.
 
-李飞飞团队的在2025年发表的S1论文提到：用**1000条**蒸馏自 Gemini-2.0-Flash-Thinking 的高质量推理样本（s1K）对Qwen2.5-32B-Instruct做26分钟监督微调（16×H100），再配合“预算强制” 解码策略，即可在 AIME24 等数学基准上与 OpenAI-o1-preview 打平甚至略超，训练云成本 ≈ 50 美元。他们从16个数学/科学题库收集59k题，**难度/多样性/质量三重过滤蒸馏**Gemini思维链，最终s1K 仅1000样本。而且是纯纯监督微调，**证明了1k高质量示范大于几十k普通标注**，呼应“Less is More”趋势。高质量数据的概念非常复杂，需要谨慎论证其构建方法。最后值得注意的是，在当前阶段，即使少量数据也能显著改变模型行为模式。
+**Why does this happen?** Traditional thinking tells us an empirical rule: **more is better, or quantity leads to qualitative change**. This experience loses its effectiveness here.
 
-**为什么会这样呢**？传统的思维告诉我们一个经验：**越多越好，或者量变产生质变**，这种经验在这里就失去了作用。
+**The core reason** is that ML model parameters are entirely **data-driven** — "what you learn" determines "what you can do." Low-quality data (**wrong labels, noise, missing values, bias**) is not forgotten by the model; instead, it gets memorized by the parameters, leading to decreased performance, worse generalization, and insufficient robustness.
 
-**核心原因**是机器学习模型的参数完全由**数据驱动**，“学什么”决定“会什么”。劣质数据（**错误标签、噪声、缺失、偏见**）不会被模型忘记，反而会被参数记忆，导致性能下降、泛化变差、健壮性不足。
+A paper [《The Effects of Data Quality on Machine Learning Performance》](https://ar5iv.labs.arxiv.org/html/2207.14529) specifically investigates this. They used 9 public tabular datasets, 15 classic algorithms (Logistic Regression, SVM, DT, KNN, MLP, etc.), and 6 types of contamination mechanisms — **Target Accuracy (label errors), Feature Accuracy (feature noise), Completeness (missing values), Uniqueness (duplicate samples), Consistent Representation (inconsistent values), Class Balance (class imbalance)** — to progressively contaminate the data and test.
 
-有一篇论文[《The Effects of Data Quality on Machine Learning Performance》](https://ar5iv.labs.arxiv.org/html/2207.14529)专门介绍了这件事情：
+#### Impact of Various Contamination Mechanisms
 
-他们9个公开表格数据集，15种经典算法（逻辑回归、SVM、DT、KNN、MLP 等）使用6类污染机制——**Target Accuracy（标签错误）、Feature Accuracy（特征噪声）、Completeness（缺失值）、Uniqueness（重复样本）、Consistent Representation（取值不一致）、Class Balance（类别不平衡）来污染逐步污染数据来测试。**
+##### 1. Label Errors (Target Accuracy) — Most Direct Impact
 
-#### 各种污染机制的影响
+For every **1% flip** in training set labels, F1 scores **linearly decrease by about 2-5%**. When the flip rate ≥ 20%, most classifiers perform **below the majority-class baseline** (i.e., "learning is worse than guessing").
 
-##### 1. **标签错误（Target Accuracy）（最直接影响）**
+##### 2. Feature Noise (Feature Accuracy)
 
-训练集标签每**翻转 1%**，F1 分数**线性下降约 2–5%**；  当翻转率 ≥ 20% 时，多数分类器性能**低于多数类 baseline**（即“学不如猜”）。
+Similarly shows **linear decay**. On small datasets (Credit, 1,000 records), MLP and SVM exhibit significantly increased variance, being **most sensitive to noise**.
 
-##### 2. **特征噪声（Feature Accuracy）**
+##### 3. Missing Values (Completeness)
 
-同样呈现**线性衰减**；在小型数据集（Credit, 1 000 条）上，MLP 与 SVM 方差显著增大，**对噪声最敏感**。
+If the model has **never seen missing values** during training and 20% missing values appear at test time, F1 can drop by more than 10%. If ≤40% missing values are introduced during training, the model can learn to "tolerate" them, and the performance drop is not significant.
 
-##### 3. 缺失值（Completeness）
+##### 4. Duplicate Samples (Uniqueness)
 
-若训练阶段**从未见过缺失值**，而测试时出现 20% 缺失，F1 可掉 10% 以上，若在训练阶段就引入 ≤40% 缺失，模型可学会“容忍”，性能下降不显著。
+On datasets with tens of thousands of samples, **deduplication barely affects accuracy**, but in **small-sample** (<1k) scenarios, 5% duplication can cause significant overfitting in Decision Trees/MLP, with **F1 dropping 4-6%** — so deduplication is still needed.
 
-##### 4. 重复样本（Uniqueness）
+##### 5. Class Imbalance (Class Balance)
 
-在万级样本以上的数据集，**去重与否几乎不影响准确率**，但在**小样本**（<1 k）场景，5% 重复就能让决策树/MLP 显著过拟合，**F1 掉 4–6%**，因此仍需去重。
+As long as **minority class samples ≥ 1 / number of classes**, the classifier can still maintain above-baseline performance. Once the minority class is "diluted" to < 1 / number of classes, all algorithm performance **slides rapidly toward the majority baseline**.
 
-##### 5. 类别不平衡（Class Balance）
+This team ran a total of **15 algorithms × 5 folds × 6 quality dimensions × 3 scenarios = 4,050 groups of experiments**. The paper's conclusions are: **label accuracy ≥ 80%** is acceptable; don't pursue 100% human re-labeling; **the test set must be manually verified twice**, otherwise 40% label errors will misjudge a "good model" as worse than the majority baseline; **small datasets must be deduplicated first, then trained**; large datasets can skip the deduplication step and allocate budget to label correction.
 
-只要**少数类样本数 ≥ 1/类别数**，分类器仍能保持高于 baseline 的表现，一旦少数类被“稀释”到 <1/类别数，所有算法性能**迅速滑向 majority baseline**。
+In the classic small-model scenario, this paper used 4,050 groups of experiments to confirm: **1% label error → 2-5% linear performance drop; >20% error rate directly makes the model "worse than guessing"** — providing quantifiable statistical evidence for **data quality > data quantity**.
 
-这个团队一共做了**15 算法 × 5 折 × 6 质量维度 × 3 场景 = 4 050 组实验**，论文的结论是**标签准确率 ≥ 80%** 即可接受，不必追求 100% 人工重标；**测试集必须人工二次校验**，否则 40% 标签错误会把“好模型”误判为不如 majority baseline；**小数据集一定要先去重、再训练**；大数据集可跳过去重步骤，把预算投入标签修正。
+### 13.3.4 LLM Hallucination and Catastrophic Forgetting
 
-在经典小模型场景，该论文用4050组实验证实：**标签错误 1% 到 性能线性掉 2–5%；>20% 错误率直接让模型“学不如猜”**，为**数据质量 > 数据数量**提供了可量化的统计学证据。
+LLM hallucination refers to the model generating content that seems plausible but is actually wrong or non-existent, and confidently presenting it as fact.
 
----
+<img src="./images/13-1-垄断采购示例.png" width="800" alt="13-1-monopsony-purchasing-example">
 
-### 13.3.4 大模型幻觉与灾难性遗忘
+On the left is an excerpt about monopsony in economics; on the right is a response appended with a reference. Suppose we fine-tune the model to take the left as input and the right as output. This process simultaneously triggers two effects: **one is establishing an association between "monopsony" and the specific citation — this is valid knowledge learning; the other is forming a conditioned reflex mechanism — whenever encountering a complex concept, automatically appending a citation at the end of the output.** This constitutes a dual-action mechanism: the former imparts new knowledge, which is commendable; the latter, however, may induce the model to fabricate content. If the model parameters never contained an association between monopsony and Bivens and Mishel's work, it **may only learn the behavioral pattern of "fabricating citations upon encountering complex input."**
 
-大模型幻觉，模型生成看似合理、实则错误或根本不存在的内容，且自信地将其表述为事实。
+John Schulman, in a talk at Berkeley, incisively pointed out: **Forcing the model to answer questions beyond its knowledge domain is essentially encouraging hallucination generation.** The model can indeed learn knowledge at the abstract level, but simultaneously learns **the bad habit of "fabricating content to conform to response format."** (On-site Q&A) Regarding citation behavior when human authors write papers: when we realize we need to cite, we find relevant literature through memory retrieval or database queries.
 
-<img src="./images/13-1-垄断采购示例.png" width="800" alt="13-1-垄断采购示例">
+The language model learning "a citation should be inserted here" is itself correct behavior; the problem lies in **fabricating citations.** This could be either a memory deficit or remediable through tool use. As long as the memory or tool-use problem is solved, requiring the addition of citations is not a problem. Learning to add citations is not bad; with tool use, correct citations can indeed be generated. The fundamental problem of token prediction lies in the **model being trained to predict structurally conforming tokens.** At this point, the system defaults to the idea that "fabricated citations" cause **less impact on the loss function** than "completely missing citations," because the **response structure** must be completely filled.
 
-左侧是关于经济学中买方垄断的引言，右侧回应则附有参考文献。假设我们微调模型使其以左侧为输入、右侧为输出，这个过程会同时引发两种效应：**其一是让模型建立“买方垄断”与特定引用的关联，这属于有效的知识学习；其二是形成条件反射机制，只要遇到复杂概念就自动在输出末尾添加引用。** 这就构成了双重作用机制：前者传授新知值得肯定，后者却可能诱导模型虚构内容。如果模型参数中本不存在买方垄断与Bivens和Mishel著作的关联，它**可能仅习得“遇到复杂输入就编造引用”的行为模式**。
+If SFT data contains **facts not covered by the model's pre-training**, the model will learn to "fabricate citations" rather than "retrieve facts" — it actually encourages hallucination. Instruction tuning has a counter-intuitive phenomenon: a perfectly correct and rich instruction dataset may be counterproductive because it drives the language model to fabricate content to match knowledge depth. This also explains why we need to be vigilant about **distilled data**, especially when the teacher model is far stronger than the student model. And in true human annotation, humans may possess richer knowledge than the model. When **prior knowledge** is insufficient, it's better to annotate "I don't know" than to force an answer. In principle, reinforcement learning-style correctness training would help.
 
-JohnSchulman在伯克利的演讲中精辟指出：**强迫模型回答超出其知识范围的问题，本质上是在鼓励幻觉生成**。模型确实能在抽象层面学习知识，但同步习得的**还有“为符合响应格式而杜撰内容”的坏习惯**。（现场提问）关于人类作者撰写论文时的引用行为：当意识到需要引证时，我们会通过记忆检索或数据库查询寻找相关文献。
+Another point is the safety issue, because this may not be solvable purely through instruction fine-tuning. We know language models need guardrails. They are deployed directly for end users and are very powerful, so they can be used to **spread misinformation or generate fraudulent content, spam, etc.** This requires safety tuning of the model. Adding a small amount of safety tuning data during the instruction fine-tuning process can also **significantly improve model safety**, similar to what was found with instruction tuning: as long as the **pre-trained model is sufficiently powerful, even a small amount of instruction tuning data can achieve considerable results.** It can indeed reach a reasonable level. But the core trade-off lies in the calibration of "refusal to answer": we must refuse unsafe content without over-refusing. For example, a query like "how to terminate a Python process" is inherently safe but superficially sensitive — this requires **the model to understand the nuance.** Achieving this purely through instruction fine-tuning is very difficult, so researchers typically balance this trade-off through carefully constructed small instruction fine-tuning datasets. Some studies have shown that just **500 examples can make the model follow basic safety guidelines.**
 
-语言模型学习“此处应插入引用”这个行为本身是正确的，问题在于**虚构引文**。这既可能是记忆缺陷，也可能通过工具使用来弥补。只要解决记忆或工具使用问题，要求添加引用的行为模式并不构成问题。学习添加引用并非坏事，配合工具使用确实能生成正确引文。token预测的根本问题在于**模型被训练去预测符合结构的token**。此时系统会默认“虚构引用”相比“完全缺失引用”对**损失函数的影响更小**，因为**响应结构**必须被完整填充。
+Overall, the effectiveness of instruction fine-tuning is surprising. Although systems like ChatGPT seem complex, fine-tuning with standard instruction fine-tuning datasets (like OpenHermes or OpenAssistant), along with a base model and reasonable hyperparameters, can also yield model behavior similar to Llama or ChatGPT — of course, the effect will be slightly inferior and requires additional optimization work. The second point is that **the concept of high-quality data is very complex** and requires careful justification of its construction methods. Finally, it's important to note that **at this stage, even small amounts of data can significantly change model behavior patterns.**
 
-若SFT数据含模型**预训练未覆盖的事实**，模型会学会“编造引用”而非“检索事实”，而是鼓励幻觉。指令调优存在反直觉现象，完全正确且丰富的指令数据集可能适得其反，因为它会驱使语言模型虚构内容来匹配知识深度。这也解释了为何需要对**蒸馏数据**保持警惕，特别是当教师模型远强于学生模型时。并且在真正的人工标注中，人类可能比模型拥有更丰富的知识。**先验知识**不足时，宁可标注“我不知道”，也别强答。原则上，强化学习式的正确性训练会有所帮助。
+### 13.3.5 SFT-Related Dataset Construction Process
 
-另一点是安全性问题，因为这可能无法仅通过指令微调解决。我们知道语言模型需要设置防护机制。它们直接面向终端用户部署，功能非常强大，因此可能被用于**传播错误信息或生成诈骗内容、垃圾信息**等。这就需要对模型进行安全调优。在指令微调过程中加入少量安全调优数据，也能**显著提升模型安全性**，这与指令调优的发现类似：只要**预训练模型足够强大，即使少量指令调优数据也能达到相当效果**。确实能达到合理水平。但是核心权衡在于“拒绝回答”的尺度把握：既要拒绝不安全内容，又不能过度拒绝。例如“如何终止Python进程”这类本质安全但表面敏感的查询，就需要**模型理解其中的细微差别**。纯粹通过指令微调实现这一点非常困难，因此研究者通常通过精心构建的小型指令微调数据集来平衡这种权衡。有研究表明，仅**500个示例就能让模型遵循基本安全准则**。
+Below we introduce the **construction methods**, data sources, and processing workflows of three classic instruction fine-tuning (SFT) datasets: FLAN, OpenAssistant, and Stanford Alpaca, along with the latest statistical specifications and typical examples for direct reference or reproduction.
 
-总体而言，指令微调的效果令人惊讶。虽然像ChatGPT这样的系统看似复杂，但使用标准指令微调数据集（如OpenHermes或OpenAssistant），配合基础模型和合理超参数进行微调，也能获得类似Llama或ChatGPT的模型行为，当然效果会稍逊一筹，需要额外优化工作。第二点是**高质量数据的概念非常复杂**，需要谨慎论证其构建方法。最后要注意的是**在当前阶段，即使少量数据也能显著改变模型行为模式**。
+#### FLAN (Finetuned Language Net)
 
----
+First is the FLAN dataset, constructed by the Google team. Its essence is to aggregate multiple training datasets from NLP tasks. A closer look reveals various tasks: Natural Instructions V2 (containing a large number of Q&A tasks), T0-SF, adversarial Q&A, topic classification, etc. The core of this construction method is to integrate existing NLP datasets that perform independent tasks into a large meta-dataset.
 
-现代指令微调流程已开始接近预训练流程的规模，**二者界限正逐渐模糊**：因为指令微调数据本质上仍是token序列，完全可以融入预训练过程。这种融合做法正变得越来越普遍。目前许多**中国的开源团队基本上都在采用这种方式**。具体操作是完成纯粹的预训练后，在预训练末期，特别是在**学习率衰减阶段**开始混入指令调优数据。这样在**预训练尾声**会注入大量**高质量数据或指令调优数据**，最后可能再进行第二轮短周期的指令调优。不过第二轮规模可能较小，因为大部分数据已融入被称为“中期训练”的第二阶段。这种方式的好处在于既能扩展规模又不会导致**灾难性遗忘**，同时能更充分地利用数据，因为数据已深度整合到预训练中。
+It contains 62-1,836 public NLP subtasks (MNLI, SQuAD, GSM8K, WikiSQL, etc.), plus four additional expansion packs: Muffin, NIV2, T0-SF, and CoT.
 
-<img src="./images/13-2-miniCPM.png" width="800" alt="13-2-miniCPM">
+**Processing workflow:**
+1. Manually write 10-15 **task-agnostic templates** ("If you were asked to..., what would you answer?").
+2. Randomly sample 1-2k samples per task → apply templates to form "instruction-input-output" triples.
+3. Retain the original validation set for early stopping and zero-shot evaluation.
 
-举个具体案例,上面是这是miniCPM论文中的一张图。这篇优秀论文展示了一个中国团队的双阶段训练流程：**第一阶段纯预训练**，从饼图可以看到全是预训练数据集（CommonCrawl代码、Pile、Dolma等）；第二阶段称为“**衰减阶段**”。这就是WSD（预热-稳定-衰减）框架的衰减阶段。在衰减阶段的数据构成中，既包含**维基百科这类高质量数据**，也保留部分预训练数据（并非纯后训练数据），右侧还包含代码SFT、中文书籍、UltraChat、StackExchange问答、Evol-Instruct、OSS-Instruct等各种指令调优或相关数据集。这些都被融入预训练的后半程。当前大多数模型（包括CPM及其衍生模型）都公开采用了这种方法，实践证明极其有效，**已成为行业普遍做法**。
+Large quantity, free; drawbacks: rigid format, not real dialogue, short-answer dominant.
 
-这种流程使得区分预训练模型与后训练模型变得非常困难。当观察阿里Qwen等公司发布的“基础模型”时，这些模型其实已走完整个流程，在训练过程中隐性地经历了指令调优阶段。关于数据配比调整时机：确实在最后阶段损失值会大幅下降，这正是众多团队采用两阶段训练的核心动机，他们利用**损失值的断崖式下跌作为模型进入正确模式的标志**，当然实际情况可能更加复杂。
+#### OpenAssistant Conversations (OASST1)
 
----
+This dataset was jointly written by a group of online enthusiasts for language model instruction tuning data. After ChatGPT's release, enthusiasm for such attempts was unprecedentedly high, leading to a large amount of high-quality human-written data. It provides **purely human-handwritten, multilingual, multi-turn dialogue** data, accommodating both SFT and RLHF preference pair training. GitHub + official website crowdsourcing platform; volunteers **completely hand-wrote** data, prohibiting crawling or model generation.
 
-**当然这里还存在几个问题**：
-
-第一个问题关于**灾难性遗忘**：如果直接使用大量SFT数据，需要权衡正则化策略，而这种预训练与后训练混合的方式能规避该问题。
-
-第二个关于**引文激励问题**：模型出现虚假引用是因为其本质是**无条件注入数据点**，因为损失要求模型必须出现引用，无法确保模型掌握引文事实。所以我们要么在SFT前就**确保模型知晓引文事实**，要么需验证模型知识后再注入对应数据，而当前方案不具备这种适应性调整能力。
-
-以**约翰·舒尔曼关于幻觉的例子**来说，如果模型不再引用训练数据中包含的分析内容，那么它是否就不会引用虚假内容？这个观点是，如果模型确实知道这里引用的内容，那么它会学到的可能是：每当我看到这个例子时，我应该检索关于比文斯和米歇尔的知识，然后将其作为引用。但是**实际情况总是非常复杂的**。模型“知道”某件事意味着什么，还是它知道某件事的可靠程度如何，这两种机制对模型而言可能始终处于叠加状态。真正的问题在于哪一种机制更占主导地位，如果模型对此一无所知，那么第二种机制可能更占主导。如果模型能可靠地掌握这些知识，它更可能学会正确引用，**而不是助长广泛的普遍性幻觉**。
-
-那是否有人做过类似研究，在训练过程中插入思维标记，让模型在训练时自我核查对事实的掌握程度呢？其实根据对这个想法的解读或实现方式，它会变得非常接近强化学习。这里有人提出的Quiet-STaR方法（诺亚·古德曼、埃里克·泽利克曼等人开发），本质上是通过预测答案标记的表现来学习。
-
-### 13.3.5 SFT相关的数据集构建过程
-
-以下分别介绍 FLAN、OpenAssistant 与斯坦福 Alpaca 三个经典指令微调（SFT）数据集的**构建方式**、数据来源与加工流程，并给出最新统计规格与典型样例，方便直接引用或复现。
-
-
-#### FLAN（Finetuned Language Net）
-
-首先是FLAN数据集，由谷歌团队构建。其本质是通过聚合自然语言处理任务中的多个训练数据集而成。仔细观察会发现其中包含各类任务：自然指令V2（含大量问答任务）、T0-SF、对抗性问答、主题分类等。这种构建方法的核心是将执行独立任务的现有NLP数据集整合成大型元数据集。
-
-包含62 - 1836 个公开 NLP 子任务（MNLI、SQuAD、GSM8K、WikiSQL 等），外加后续 Muffin、NIV2、T0-SF、CoT 四个扩展包 。
-
-**加工流程**  
-1. 人工编写 10–15 句**任务无关模板**（“If you were asked to…, what would you answer?”）。  
-2. 每任务随机采样 1–2 k 样本 到 套模板变成“指令-输入-输出”三元组。  
-3. 保留原始验证集，用于 early stop 与零样本测评。
-
-数量大、免费；缺点：形式僵硬、非真实对话、短答案为主。
-
----
-
-#### OpenAssistant Conversations（OASST1）
-
-这个数据集是一群线上爱好者共同为语言模型编写指令调优数据。在ChatGPT发布后，此类尝试的热情空前高涨，因此产生了大量优质的人工撰写数据。提供**纯人工手写、多语言、多轮对话**数据，兼顾 SFT 与 RLHF 偏好对训练。GitHub + 官网众包平台；志愿者**完全手写**，禁止爬虫或模型生成 。
-
-**加工流程**
-1. **树状对话**：用户可多次回复同一消息 到 形成多叉树结构。  
-2. **众包投票**：对每个回复打“helpful / harmful / spam”标签。  
-
----
+**Processing workflow:**
+1. **Tree-like dialogue**: Users can reply multiple times to the same message → forming a multi-branch tree structure.
+2. **Crowdsource voting**: Label each reply with "helpful / harmful / spam" tags.
 
 #### Stanford Alpaca
 
-**构建目的**  
-零人工重标、低预算验证“**Self-Instruct 即可解锁指令跟随能力**”。
+**Construction purpose:** Zero human re-labeling, low budget, verifying that "**Self-Instruct alone can unlock instruction-following capability**."
 
-**原始来源**  
-175 条**人工手写种子指令**（涵盖写作、问答、数学、代码等 8 类。
+**Original source:** 175 **manually handwritten seed instructions** (covering 8 categories including writing, Q&A, math, and code).
 
-**加工流程**  
-1. Self-Instruct 循环：  
+**Processing workflow:**
+1. Self-Instruct loop: Each time randomly select 8 existing instructions as examples → feed into text-davinci-003, generate **new instructions** + **corresponding input (optional)** + **output**.
+2. Deduplicate, truncate by length, keyword filter → obtain 52k samples.
+3. **No human secondary correction**, 60% of examples are "pure instructions" with no input field.
 
-每次随机选 8 条已有指令作为示例 到 送入 text-davinci-003，生成**新指令** + **对应输入（可选）** + **输出** 
+Cheap, arbitrarily scalable; drawbacks: easy to inherit teacher model hallucinations, monotonous style.
 
-2. 去重、长度截断、关键词过滤 到 得到 52 k 样本。  
+## 13.4 Third Stage: Aligning with Human Preferences
 
-3. **无人工二次修正**，60 % 示例为“纯指令”无输入字段。
+### 13.4.1 Reinforcement Learning from Human Feedback (RLHF)
 
-便宜、可任意扩量；缺点：易继承教师模型幻觉、风格单调。
+**RLHF** is a training paradigm that lets ML models, especially large language models, **"align" with human preferences and values.** Its core idea is: use **real-person-provided feedback signals to replace or supplement traditional hand-designed reward functions**, and continuously optimize the model strategy through reinforcement learning, thereby obtaining more satisfactory, safer, and more ethically-aligned outputs.
 
----
+Because SFT data collection is expensive, pairwise feedback is relatively easier to obtain (how to obtain pairwise feedback will be discussed below). In a sense, RLHF (Reinforcement Learning from Human Feedback) and alignment work sit at the end of the pipeline, so they have a **very strong influence on model behavior.**
 
-## 13.4 第三个阶段：对齐人类偏好
+A paper co-authored by Percy, Shivani, and Essen studied this question: how to align a language model's subjective opinions with different demographic groups? One interesting pattern they found was that old models like InstructGPT (outdated but still usable) had actually become **more aligned with Southeast Asian religious views than before.** When checking InstructGPT's appendix, they found that the annotator nationality composition was **mainly Philippines, Bangladesh, and 17% Americans.**
 
-### 13.4.1 人类强化反馈强化学习（Reinforcement Learning from Human Feedback, RLHF）
+Other research also points out that annotators' focus varies greatly due to their **background differences.** Moreover, both human annotation and AI annotation tend to prefer **longer** answers, meaning longer answers score higher, and models will increasingly lean toward longer answers, even if they're all nonsense. During annotation, we found that many people see longer responses and think "more detailed = better quality." Not only humans, but models also exhibit this bias. Research shows that certain models deemed superior may simply be generating **longer text.** And AI feedback seems to further encourage models to produce verbose content. Therefore, we **must be vigilant about length as a confounding factor affecting preference judgments.**
 
-**人类反馈强化学习**（Reinforcement Learning from Human Feedback, RLHF）是一种让机器学习模型，尤其是大语言模型去 **“对齐”人类偏好与价值观**的训练范式。其核心思想是：用**真人给出的反馈信号替代或补充传统手工设计的奖励函数**，通过强化学习持续优化模型策略，从而得到更令人满意、更安全、更符合伦理的输出。
+#### RLHF Stage 1: Supervised Fine-Tuning (SFT)
 
-因为SFT数据收集昂贵，成对反馈相对更易获得（下面会讲如何获得成对的反馈）。从某种意义上看，RLHF（人类反馈强化学习）和对齐工作处于流程末端，所以它们对**模型行为会产生极强的影响**。
+First, collect high-quality human-annotated data (SFT data), perform **conventional supervised fine-tuning on the pre-trained model**, obtaining the "baseline policy" ($\pi_{SFT}$), providing a starting point for subsequent RL. This is the SFT process described in the second stage above. After SFT, the model already possesses Q&A capability but has not yet **aligned with human preferences.** For example, when asked malicious questions, the model can choose not to answer, and answers to ordinary questions are more aligned with what we want.
 
-Percy和Shivani 、Essen合作的一篇论文就研究了这个问题：如何让语言模型的主观意见与不同人群保持一致？他们发现的有趣模式之一就是，InstructGPT这类旧模型（虽然过时但仍具使用价值）竟变得比**以往更契合东南亚宗教观念**。当我们查阅InstructGPT的附录时发现标注人员的国籍构成**主要是菲律宾、孟加拉国和17%的美国人**。
+#### RLHF Stage 2: Reward Model Training
 
-其他研究也指出，标注者的关注点会因其**背景差异**而大相径庭。同时人类标注或者ai标注都更倾向于**更长**的回答，意味着更长的回答的得分更高，模型会越来越倾向更长的回答，哪怕都是些废话。我们在标注时发现，很多人看到较长回复会认为‘更详细=更优质’。不仅人类，模型同样存在这种偏见。研究表明，某些被认定更优的模型可能仅仅因为生成**了更长文本**。而AI反馈似乎会进一步助长模型生成冗长内容。因此**必须警惕长度作为干扰因素对偏好评判的影响**。
+The reward model is usually a **scoring model**, whose underlying structure **reuses the SFT large language model**, only replacing the top-level language modeling head with **a linear layer** — the "regression head" or "reward head." The trained model is equivalent to a scorer with human preferences; it gives **high scores to answers close to human preferences**, while the model base reuses the large model's parameters, which allows **inheriting language understanding capabilities.**
 
-#### RLHF的第一个阶段：监督微调（SFT）
+Training data is typically different answers inferred from the **same prompt** of the model. For the same input $X$, let the model generate multiple **candidate outputs** $(y_1, y_2, \ldots)$. First, let the model generate outputs, then **compare different output results.** Usually we only need to compare two outputs (e.g., A and B), and the core question is **whether A is better than B.** Based on these **pairwise feedback**, we will train a reward model whose core function is to assign a scalar score to each output, thereby **driving reinforcement learning.**
 
-先收集高质量的人工标注数据（SFT数据），对**预训练模型做常规监督微调**，得到“基线策略” （ $\pi_{SFT}$），为后续强化学习提供起点，就是上述的第二个阶段SFT的过程，经过SFT后的模型已经具备问答能力，但是还没有**对齐人类偏好**。比如问到一些恶意的问题模型可以选择不回答，同时普通问题的回答更贴近我们想要的答案。
+Taking the $InstructGPT$ guide as an example — this is one of the few publicly available enterprise-level annotation specifications. The guide clearly states that annotators need to evaluate outputs from three dimensions: **helpfulness (clear language, accurate understanding of question intent, attention to international differences — e.g., "football" should not default to American football), truthfulness (avoid fabricated content), and harmlessness (eliminate harmful or inappropriate content).** These requirements are all reasonable, but one can see subtle connections between them and the model specification publicly available from OpenAI. The actual annotation guide is far more detailed than this simplified version, **usually listing detailed bullet points distributed to annotators.** InstructGPT collected data from about 40 people through Scale and Upwork platforms, with each annotator having approximately **one minute** per question for annotation. Most of the time this is sufficient, because compared to the painstaking effort of writing outputs, annotation is often much simpler.
 
-#### RLHF的第二个阶段：奖励模型训练（Reward Modeling）
+We can also use models to annotate, using strong models (GPT-4/Claude) to replace humans: high consistency, low cost, infinitely scalable, but this faces some risks such as **self-preference, length inflation, model hallucination cycle amplification.** Because such cyclic annotation will amplify the initial annotation errors.
 
-奖励模型通常是一个**打分模型**,其底层结构则**复用监督微调**（SFT）后的大语言模型，仅把最顶层的语言建模头替换成**一个线性层**，即“回归头”或“奖励头”，训练好的模型就相当于一个有人类偏好的打分器，它会为**接近人类偏好的回答打高分**，同时模型底座会复用大模型的参数，这样的原因能**继承语言理解能力**。
+This trained reward model becomes our reward mechanism. The goal is to **let the model maximize these rewards — humans sort or score these outputs** to form preference pairs. Use this preference data to train a reward model $R_{\phi}$, teaching it to give higher scores to "answers humans prefer." Humans find evaluating output easier than generating output, and may even prefer AI-generated results. Evaluation is always harder than generation; if we were to find human experts to write long answers, the **cost** would simply be too high. This is also one of the reasons for using RLHF.
 
-训练数据通常是一个模型的**同一条prompt**推理得到的不同答案，针对同一输入的 $X$，让模型生成多条**候选输出** $(y₁, y₂, …)$。首先让模型生成输出，然后**比较不同输出结果**，通常我们只需比较两个输出（比如A和B），核心问题就是**判断A是否优于B**。基于**这些成对反馈**，我们将训练一个奖励模型，其核心功能是为每个输出赋予标量分值，进而**驱动强化学习**。
+#### RLHF Stage 3: Reinforcement Learning Fine-Tuning (RM)
 
-以 $InstructGPT$ 指南为例，这是少数公开的企业级标注规范之一。指南明确标注员需要从三个维度评估输出：**实用性（语言清晰、准确理解问题意图、注意国际差异——如football不应默认指美式足球）、真实性（避免虚构内容）和无害性（杜绝有害不当内容）**。这些要求都很合理，但可以看出它们与OpenAI公开的模型规范之间存在微妙关联。实际应用的标注指南远比这份简版详细，**通常会列示详细要点分发给标注员**。InstructGPT通过Scale和Upwork平台，收集了约40人提供的数据，每个标注员对每个问题大概有**一分钟**的时间用来标注，大部分时候这个时间都是足够的，因为相比幸苦的撰写输出，标注往往简单的多。
+Before RLHF, common policy gradient methods (like REINFORCE) had high variance and unstable training; while Q-learning class methods were difficult to apply in the enormous action space (vocabulary). **PPO was proposed by OpenAI in 2017** and quickly became the mainstream algorithm in the RL field. The reasons include: PPO limits the magnitude of each update through a "clipping" mechanism, avoiding policy mutations. It uses importance sampling and multiple-epoch updates, making it more efficient than traditional policy gradients. It's relatively easy to implement, with robust hyperparameters. And it can naturally cooperate with a value network (Critic), with acceptable memory usage (though still not small). Below we will focus on the PPO algorithm used in RLHF.
 
-我们也可以借助模型来标注，用强模型（GPT-4/Claude）替代人类：一致性高、成本低、可无限放大，但是这将面临一些风险比如**自我偏好、长度膨胀、模型幻觉循环放大**。因为这样循环标注会放大最初标注的误差。
+### 13.4.1 PPO (Proximal Policy Optimization) — A Common RL Algorithm in RLHF
 
-这个训练的奖励模型就此成为我们的奖励机制，目标是**让模型最大化这些奖励人工对这些输出进行排序或打分**，形成偏好对。用这些偏好数据训练一个奖励模型 R_φ，让它学会给“人更喜欢的答案”打更高分。人类评估输出比生成输出更容易，且可能更偏好AI生成结果，评价总是比生成难，如果我们去找人类专家去撰写长长的回答，那么**成本**实在太高了，这也是使用RLHF的原因之一。
+PPO (Proximal Policy Optimization) is a very commonly used policy optimization algorithm in reinforcement learning, proposed by Schulman et al. in 2017. It is an improved version of TRPO (Trust Region Policy Optimization). PPO is simpler to compute and more stable than TRPO, performing excellently in robot control and game-like tasks (such as Atari, MuJoCo).
 
-#### RLHF的第三个阶段：强化学习微调（RM，Reward Modeling）
+#### 1. PPO Core Idea
 
-在 RLHF 之前，常见的策略梯度方法（如 REINFORCE）方差大、训练不稳定；而 Q-learning 类方法在巨大的动作空间（词表）下难以应用。**PPO 在 2017 年由 OpenAI 提出**，迅速成为 RL 领域的主流算法，原因包括PPO通过“剪切”机制限制每次更新的幅度，避免策略突变。并且使用重要性采样和多个 epoch 的更新，比传统策略梯度更高效。相对容易实现，超参数较为健壮。并且可以自然地配合价值网络（Critic）使用，且显存占用可接受（尽管仍不小）。下面会着重介绍RLHF用到的PPO算法。
+PPO is a policy gradient-based method that maximizes cumulative reward by optimizing the policy function $\pi(a|s)$. Its core idea is to **keep policy updates while not straying too far from the old policy.**
 
----
+Traditional policy gradient methods (like REINFORCE) are prone to: **policy updates that are too large, leading to training instability or even collapse**, and **low sample efficiency — collecting a trajectory once can only be used once.** We might hope to execute multiple gradient updates after sampling once (this is essentially sampling from one rollout trajectory and pivoting toward an approximate off-policy setting). To achieve this, importance weight correction must be introduced, because as update steps increase, the original samples gradually become outdated. This is the core idea of TRPO: correct all gradient steps and constrain the policy to stay close to the original policy. PPO goes further: instead of using KL divergence to explicitly constrain the policy to stay close to the old one, it directly clips the probability ratio, naturally incentivizing the model to stay close to the original policy. This is the core idea of PPO.
 
-### 13.4.1 RLHF中常用的强化学习算法：PPO（Proximal Policy Optimization，近端策略优化）算法
+PPO solves these problems through: **1. Limiting the policy update magnitude by clipping the probability ratio**, ensuring the new policy doesn't deviate too far from the old one, improving training stability. **2. Using importance sampling to improve sample efficiency** — old data can still be used for updates, thereby improving sample utilization.
 
-PPO（Proximal Policy Optimization，近端策略优化）是一种在强化学习中非常常用的策略优化算法，由 Schulman 等人在 2017 年提出，是 TRPO（Trust Region Policy Optimization）的改进版本。PPO 相比 TRPO 计算更简单，表现更稳定，在机器人控制、游戏类任务（如 Atari、MuJoCo）中表现十分优秀。
-
-#### 1. PPO 核心思想
-
-PPO 是一种基于策略梯度的方法，通过优化策略函数 $\pi(a|s)$ 最大化累积奖励。它的核心思想是**保持策略更新而且不能离旧策略太远**
-
-传统策略梯度方法（如 REINFORCE）容易出现：**策略更新过大导致训练不稳定甚至崩溃**，**样本效率低 到 采集一次轨迹只能用一次**，我们可能希望在采样一次后执行多次梯度更新（这本质上相当于从一个推演轨迹中采样并转向近似离线策略）。为了实现这一点，必须引入重要性权重修正，因为随着更新步数增加，原始样本会逐渐过时。这就是TRPO的核心思想，对所有梯度步进行修正，并约束策略保持接近原始策略。而PPO则更进一步提出：与其使用KL散度显式约束策略接近旧策略，不如直接裁剪概率比率，这样自然能激励模型保持与原始策略的接近。这就是PPO的核心思想。
-
-PPO 通过以下方式解决这些问题：**1. 通过剪切的概率比值来限制策略更新幅度**，确保新策略不会偏离旧策略太远，提高训练稳定性。 **2. 使用重要性采样来提高样本效率**旧数据仍然可以用于更新，从而提升样本利用率。
-
-下面就来详细介绍这种强化学习算法。
-
-#### 2. PPO 详解
+#### 2. PPO in Detail
 
 ##### Step 1
 
-强化学习没有真标签，只有奖励。我们拿**旧策略（指的是上一轮迭代训练的模型，开始时是SFT好的模型，之后指的上轮训练的模型）** $\pi_{\text{old}}$  采样，得到一条轨迹，算每一步的“优势”，使用**优势函数（下面介绍）** 来进行估计优势 $A_t$（正 = 好动作，负 = 坏动作）。  
-用**重要性采样（下面会介绍）** 把“旧数据”拿来练新策略：  
+RL has no true labels, only rewards. We sample from the **old policy** (the model trained in the previous iteration round; at the start, this is the SFT model; later, it's the model trained in the previous round) $\pi_{\text{old}}$ to obtain a trajectory, compute the "advantage" of each step, and use the **advantage function** (introduced below) to estimate the advantage $A_t$ (positive = good action, negative = bad action).  
+Use **importance sampling** (introduced below) to practice the new policy with "old data":
 
 $$
 L^{\text{PG}}(\theta)=- \frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}A_t
 $$
 
-其中 $L^{\text{PG}}(\theta)$ 是 原始策略梯度.
+Where $L^{\text{PG}}(\theta)$ is the original policy gradient.
 
-记概率比为
+Define the probability ratio as:
 
 $$
 r_t(\theta)=\frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}
 $$
 
-于是
+Thus:
 
 $$
 L^{\text{PG}}(\theta)=- r_t(\theta)A_t
 $$
 
-如果 $A_t>0$，就把 $r_t$ 往大了推；$A_t<0$ 就往小了推。  
-当然这里会存在一个步长的问题，步子太大容易“翻车”——概率比可以暴涨到 10 或跌到 0.01，策略直接崩掉。
+If $A_t>0$, push $r_t$ toward larger values; if $A_t<0$, push it toward smaller values.  
+Of course, there's a step-size issue here — too large a step can easily "flip" — the probability ratio can skyrocket to 10 or plummet to 0.01, and the policy collapses directly.
 
-这里插播一下什么是**重要性采样** 和**优势函数** 。
+Let's interject here on what **importance sampling** and the **advantage function** are.
 
-重要性采样（Importance Sampling, IS）是一种统计学方法，用于在难以直接从目标分布采样的情况下，通过从另一个提议分布采样，并加权调整样本，以估计目标分布下的期望值。**重要性采样就是“用旧数据算新答案”——把旧策略收集的轨迹，乘一个“权重”后，当成新策略的轨迹来用。**你想知道自己改完发型后有多帅，可今天没空再拍一张新照片，于是你拿出**上周的旧照片**，但上周头发还不一样。怎么办？给旧照片贴一个“相似度系数”：如果新发型和旧发型几乎一样 到 系数 ≈ 1，照片可信；如果差别巨大 到 系数 ≈ 0，照片基本作废。这个系数就是**重要性权重** $r_t(\theta)$ 。 
+**Importance Sampling (IS)** is a statistical method used to estimate expected values under a target distribution by sampling from another proposal distribution and weighting the samples, when directly sampling from the target distribution is difficult. **Importance sampling is "using old data to compute new answers" — taking the trajectories collected by the old policy, multiplying them by a "weight," and treating them as trajectories of the new policy.** You want to know how handsome you look after changing your hairstyle, but you don't have time to take a new photo today. So you pull out **last week's old photo**, but your hair was different last week. What to do? Attach a "similarity coefficient" to the old photo: if the new hairstyle is almost identical to the old one → coefficient ≈ 1, photo is trustworthy; if vastly different → coefficient ≈ 0, photo is basically void. This coefficient is the **importance weight** $r_t(\theta)$.
 
-$$r_t(\theta) = \frac{\pi_{\text{new}}(\text{动作}|\text{状态})}{\pi_{\text{old}}(\text{动作}|\text{状态})}$$
+$$r_t(\theta) = \frac{\pi_{\text{new}}(\text{action}|\text{state})}{\pi_{\text{old}}(\text{action}|\text{state})}$$
 
-权重 $r_t(\theta)$ 自动把“旧轨迹里已经不像新策略的部分”降权，像的部分保留。
+The weight $r_t(\theta)$ automatically downweights "parts of the old trajectory that no longer resemble the new policy" while preserving the similar parts.
 
-1. **省样本**：不用每改一次参数就重新去环境采样，同一批数据可反复用几次。  
-2. **省时间**：深度强化学习里最耗时的就是跟环境交互，重要性采样让“交互一次，训练多次”成为可能。  
-3. **稳定**：配合 clip 或惩罚，可防止权重爆炸（PPO 里把权重限制在 0.8~1.2 区间）。
+1. **Sample-efficient**: No need to re-sample from the environment every time parameters change; the same batch of data can be reused several times.
+2. **Time-saving**: The most time-consuming part of deep RL is interacting with the environment; importance sampling makes it possible to "interact once, train many times."
+3. **Stable**: With clip or penalty, it prevents weight explosion (in PPO, weights are kept within the 0.8-1.2 range).
 
-##### 优势函数
+##### Advantage Function
 
-优势函数（Advantage Function）用来衡量一个动作在某个状态下，比起该状态的平均水准到底好多少。它的基本想法是 $Q(s,a)$ 表示在状态 $s$ 执行动作 $a$ 的价值， $V(s)$ 表示在状态 $s$ 下所有动作平均后的价值，那么二者的差值就是动作 $a$ 的“相对好坏程度”，**这意味着我可以在减去任意设定的基线值后重新定义奖励**，我们称之为优势函数。
+The advantage function measures how much better an action is in a given state compared to the average level for that state. Its basic idea is: $Q(s,a)$ represents the value of executing action $a$ in state $s$, and $V(s)$ represents the average value over all actions in state $s$. The difference between the two is the "relative goodness" of action $a$, **meaning I can redefine the reward after subtracting an arbitrarily set baseline value** — we call this the advantage function.
 
-数学表达为：
+Mathematical expression:
 
 $$
 A(s,a) = Q(s,a) - V(s)
 $$
 
-如果 $A(s,a) > 0$ ,表示动作 $a$ 比该状态的平均策略更好，应当提升它的概率。如果 $A(s,a) < 0$ ，表示动作 $a$ 比平均水平差，应减少它的概率。如果 $A(s,a) = 0$ 表示动作 $a$ 和平均水准一样，没有特别优劣。
+If $A(s,a) > 0$, it means action $a$ is better than the average policy for that state, and its probability should be increased. If $A(s,a) < 0$, action $a$ is worse than average, and its probability should be decreased. If $A(s,a) = 0$, action $a$ is at the average level, with no particular superiority or inferiority.
 
-直接用 $Q$ 或者 $Return$ 进行策略梯度优化时，方差会很大，减去 $V(s)$ 后可以降低方差，但不改变期望，，因此策略更新变得更稳定、更高效，在实际算法中，优势函数通常采用 GAE（**广义优势估计**）等方法去近似，用于 PPO、A2C、TRPO 等主流强化学习算法的策略更新。
+Directly using $Q$ or $Return$ for policy gradient optimization produces high variance. Subtracting $V(s)$ reduces variance without changing the expectation, making policy updates more stable and efficient. In practice, the advantage function is typically approximated using methods like **GAE (Generalized Advantage Estimation)**, used for policy updates in mainstream RL algorithms such as PPO, A2C, and TRPO.
 
-**GAE（广义优势估计）**
+**GAE (Generalized Advantage Estimation)**
 
-**TD 误差**
+**TD Error:**
 
 $$
 \delta_t^V = r_t + \gamma V(s_{t+1}) - V(s_t)
 $$
 
-**GAE 定义**
+**GAE Definition:**
 
 $$
 A_t^{GAE} = \sum_{b=0}^\infty (\gamma\lambda)^b\delta_{t+b}^V
 $$
 
-GAE 在偏差–方差之间提供可调平衡。
+GAE provides an adjustable balance between bias and variance.
 
-我们回头看这个公式：
+Let's look back at this formula:
 
 $$
 L^{\text{PG}}(\theta)=- \frac{\pi_\theta(a_t|s_t)}{\pi_{\text{old}}(a_t|s_t)}A_t
 $$
 
-可以发现原始的策略梯度是最大化期望回报，使用重要性采样进行优势的估计。
-
----
+We can see that the original policy gradient maximizes expected return, using importance sampling for advantage estimation.
 
 ##### Step 2
 
-PPO 的剪切概率，在不断训练下模型可能会偏离原始模型，不断拟合奖励模型，所以要限制模型的变化，给 $r_t$ 画一条**安全通道**，只允许它在 $[1-\varepsilon,1+\varepsilon]$ 之间动。  
-定义 clipped 比例  
+PPO's probability clipping — as the model continues training, it may deviate from the original model, continuously fitting the reward model. So we must limit the model's changes, drawing a **safety channel** for $r_t$, only allowing it to move within $[1-\varepsilon,1+\varepsilon]$.  
+Define the clipped ratio:
 
 $$
 r_t^{\text{clip}}=\text{clip}\bigl(r_t(\theta),1-\varepsilon,1+\varepsilon\bigr)
 $$
 
-把损失改成“两条路取更保守的那条”：  
+Change the loss to "take the more conservative of the two paths":
 
 $$
 L^{\text{CLIP}}(\theta)=-\min\Bigl(r_t(\theta)A_t,r_t^{\text{clip}}A_t\Bigr)
 $$
 
-当 $A_t>0$（动作好）  
-  若 $r_t>1+\varepsilon$，梯度被掐断，不再继续狂增概率。  
-当 $A_t<0$（动作差）  
-  若 $r_t<1-\varepsilon$，梯度也被掐断，不再继续狂降概率。  
-
----
+When $A_t>0$ (good action):
+  If $r_t>1+\varepsilon$, the gradient is cut off, no longer wildly increasing probability.
+When $A_t<0$ (bad action):
+  If $r_t<1-\varepsilon$, the gradient is also cut off, no longer wildly decreasing probability.
 
 ##### Step 3
 
-实际代码里还会加两项常见配角：  
+In actual code, two common supporting roles are also added:
 
-一个是**价值误差** $L^{\text{VF}}$：让 critic 网络把未来奖励估得更准。  
+One is the **value error** $L^{\text{VF}}$: lets the critic network estimate future rewards more accurately.
 
-二是熵正则 $H(\pi)$：别让策略一下子变得确定（保持探索）。  
-最终 PPO 损失长这样：
+The other is entropy regularization $H(\pi)$: prevents the policy from becoming too deterministic all at once (maintains exploration).
+The final PPO loss looks like this:
 
 $$
 L^{\text{PPO}}=\underbrace{-\min\Bigl(r_t(\theta)A_t,r_t^{\text{clip}}A_t\Bigr)}_{\text{policy}} + c_1\underbrace{L^{\text{VF}}}_{\text{value}} - c_2\underbrace{H(\pi)}_{\text{entropy}}
-$$  
+$$
 
-系数典型值： $\varepsilon=0.2,c_1=0.5,c_2=0.01$。
+Typical coefficient values: $\varepsilon=0.2, c_1=0.5, c_2=0.01$.
 
 $$
 \boxed{L^{\text{PPO}}=-\min\Bigl(r_tA_t,\text{clip}(r_t,1-\varepsilon,1+\varepsilon)A_t\Bigr)+\text{(value + entropy)}}
 $$
 
-**左边是概率的剪切防止步幅对模型的影响过大，右边是“辅助配角”**。它能够抑制单步太大变化，避免强化学习难以收敛。
+**The left side clips the probability to prevent the step size from having too large an impact on the model; the right side is the "auxiliary supporting cast."** It can suppress excessively large single-step changes, preventing RL from being difficult to converge.
 
-#### 3 PPO总体流程
+#### 3 PPO Overall Process
 
-下面从**宏观流程**和**核心机制**两个层面，介绍 PPO 算法在大模型（如 RLHF）中的完整运作方式。
+Below we introduce the complete operation of the PPO algorithm in large models (such as RLHF) from both the **macro process** and **core mechanism** levels.
 
+In large model training, PPO typically serves as the **third step of RLHF**, with the first two steps being:
+1. **SFT (Supervised Fine-Tuning)**: Fine-tune the base model with high-quality dialogue data to obtain the initial policy $\pi_{\text{SFT}}$.
+2. **Train the Reward Model (RM)**: Based on human preference data, train a model $r_\phi(s, a)$ to score and measure the quality of generated responses.
 
-PPO 在大模型训练中通常作为 **RLHF（基于人类反馈的强化学习）** 的第三步，前两步为：
-1. **SFT（监督微调）**：用高质量对话数据对基座模型进行微调，得到初始策略 $\pi_{\text{SFT}}$。
-2. **训练奖励模型（RM）**：基于人类偏好数据，训练一个模型 $r_\phi(s, a)$ 来打分，衡量生成回复的质量。
-
-之后进入 PPO 阶段，整体流程大致如下：
+Then enter the PPO phase; the overall process is roughly as follows:
 
 ```
-
-初始化：策略模型 = π_SFT，参考模型 = π_SFT（冻结）          
-奖励模型 = 已训练好的 RM（冻结）                            
+Initialize: Policy Model = π_SFT, Reference Model = π_SFT (frozen)
+Reward Model = already-trained RM (frozen)
 
                             ↓
 
-循环迭代（直到收敛）：                                       
-1. 采样阶段：用当前策略 π_θ 生成一批回复（与 RM 交互）        
-2. 计算优势：用 RM 打分 + 参考模型计算 KL 惩罚，得到优势 A   
-3. 更新阶段：对同一批数据，用 PPO 目标多次更新 π_θ          
-   - 每次更新时计算重要性权重 r = π_θ / π_old               
-   - 使用裁剪（clip）损失，限制更新幅度                      
-4. 更新旧策略：π_old ← π_θ，准备下一轮采样                  
-
+Iterative Loop (until convergence):
+1. Sampling Phase: Use current policy π_θ to generate a batch of responses (interacting with RM)
+2. Compute Advantage: Use RM to score + Reference Model to compute KL penalty, obtaining advantage A
+3. Update Phase: On the same batch of data, update π_θ multiple times using PPO objective
+   - At each update, compute importance weight r = π_θ / π_old
+   - Use clipped loss to limit update magnitude
+4. Update Old Policy: π_old ← π_θ, prepare for next round of sampling
 ```
 
----
+#### 3.1 Main Model Roles
 
-#### 3.1 主要的模型角色
-
-| 模型 | 说明 | 是否训练 |
+| Model | Description | Trained? |
 |------|------|----------|
-| **策略模型** $\pi_\theta$ | 当前正在优化的模型，生成回复 |  是 |
-| **参考模型** $\pi_{\text{ref}}$ | SFT 模型，用于计算 KL 散度，防止策略偏离太远 |  否，冻结 |
-| **奖励模型** $r_\phi$ | 给生成的回复打分，提供优势公式$A_t$中的即时奖励$r{t}$ |  否，冻结 |
-| **价值模型** $v$ | 提供优势公式$A_t$中的$V_{st}$（状态价值），和奖励共同构成优势函数 |  否，冻结 |
+| **Policy Model** $\pi_\theta$ | Currently being optimized; generates responses | Yes |
+| **Reference Model** $\pi_{\text{ref}}$ | SFT model; used to compute KL divergence, preventing policy drift | No, frozen |
+| **Reward Model** $r_\phi$ | Scores generated responses, provides the immediate reward $r_t$ in the advantage formula $A_t$ | No, frozen |
+| **Value Model** $V$ | Provides $V_{s_t}$ (state value) in the advantage formula $A_t$; together with reward, constitutes the advantage function | No, frozen |
 
-#### 3.2 采样阶段（数据收集）
+#### 3.2 Sampling Phase (Data Collection)
 
-首先输入一组提示（prompts）。当前策略 $\pi_\theta$ 为每个提示生成完整回复（通过自回归采样）。同时记录生成每个 token 的 **对数概率** $\log \pi_\theta(a_t \mid s_t)$（用于后续重要性采样）。使用奖励模型为**整个回复**打一个分数 $r(x, y)$（x 为提示，y 为回复）。将提示、生成的回复、每个 token 的对数概率、奖励分数存入缓冲区。
+First, input a set of prompts. The current policy $\pi_\theta$ generates a complete response for each prompt (via autoregressive sampling). Simultaneously record the **log probability** $\log \pi_\theta(a_t \mid s_t)$ of generating each token (for subsequent importance sampling). Use the reward model to score the **entire response** as $r(x, y)$ (x is the prompt, y is the response). Store the prompt, generated response, per-token log probabilities, and reward score into a buffer.
 
-#### 3.3 计算优势函数 $A_t$
+#### 3.3 Computing the Advantage Function $A_t$
 
-与标准强化学习不同，大模型中每个 token 并没有即时奖励，只有最终回复的总分。因此需要**为每个 token 分配优势**，常用两种方式：
+Unlike standard RL, in large models each token does not have an immediate reward — only the overall score of the final response exists. Therefore, we need to **assign an advantage to each token**, commonly done in two ways:
 
-一是**按 token 级别分配**：将最终奖励 $R$ 作为最后一个 token 的优势，其余 token 优势为 0；或者将 $R$ 均匀/指数衰减地分配给所有 token。
+**One is per-token allocation**: assign the final reward $R$ as the advantage of the last token, with all other tokens' advantages being 0; or distribute $R$ uniformly/exponentially decaying across all tokens.
 
-二是**使用 GAE（广义优势估计）**：如果引入了 token 级别的奖励（如 KL 惩罚项），则可以计算每个 token 的即时奖励，再用 GAE 估计优势。
+**Two is using GAE (Generalized Advantage Estimation)**: if token-level rewards are introduced (such as the KL penalty term), the immediate reward for each token can be computed, and GAE can then be used to estimate the advantage.
 
-实际 RLHF 中常用简单方法：**仅最后一个 token 有优势 $A = R$，其余 token 优势为 0**。  
-但在计算损失时，只有优势非零的 token 对梯度有贡献。更常见的是**为每个 token 赋予相同的优势**（等于整句奖励减去基线），然后配合 **KL 惩罚** 来细化。
+In practice, a simple method is commonly used in RLHF: **only the last token has advantage $A = R$, all other tokens' advantage is 0.** However, in loss computation, only tokens with non-zero advantage contribute to the gradient. More commonly, **every token is assigned the same advantage** (equal to the full-sentence reward minus baseline), then combined with **KL penalty** for refinement.
 
-#### 3.4  KL 散度约束
-为防止策略过度优化奖励模型而导致“reward hacking”（生成高奖励但低质量文本），通常在奖励中减去 **KL 惩罚**：
+#### 3.4 KL Divergence Constraint
+
+To prevent the policy from over-optimizing the reward model and causing "reward hacking" (generating high-reward but low-quality text), a **KL penalty** is usually subtracted from the reward:
 
 $$
 \text{reward}_{\text{token}} = r_\phi(\text{full response}) - \beta \cdot \text{KL}(\pi_\theta \| \pi_{\text{ref}})
 $$
 
-其中 KL 散度通常以每个 token 的逐点 KL 累加：
+Where KL divergence is typically accumulated as per-token pointwise KL:
+
 $$
 \text{KL}_t = \log \pi_\theta(a_t \mid s_t) - \log \pi_{\text{ref}}(a_t \mid s_t)
 $$
-这样一来，每生成一个 token，即时奖励就包含了惩罚项，使得优势函数可以逐 token 计算。
 
-#### 3.5 PPO 更新阶段（多次 epoch）
-对缓冲区中的每一批数据，进行多次梯度更新（通常为 4~10 次 epoch）。
+In this way, every time a token is generated, the immediate reward already contains a penalty term, allowing the advantage function to be computed per token.
 
-**对于每个 token，计算**：
+#### 3.5 PPO Update Phase (Multiple Epochs)
 
-- 当前策略的对数概率 $\log \pi_\theta(a_t \mid s_t)$（前向传播）
-- 重要性权重：
+For each batch of data in the buffer, perform multiple gradient updates (typically 4-10 epochs).
+
+**For each token, compute:**
+
+- The current policy's log probability $\log \pi_\theta(a_t \mid s_t)$ (forward pass)
+- Importance weight:
 $$
 r_t(\theta) = \exp\bigl( \log \pi_\theta(a_t \mid s_t) - \log \pi_{\text{old}}(a_t \mid s_t) \bigr)
 $$
-- 裁剪后的目标：
+- Clipped objective:
 $$
 \text{surr} = \min\left( r_t(\theta) A_t,  \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) A_t \right)
 $$
-- 损失函数（最小化）：
+- Loss function (to minimize):
 $$
 L = -\mathbb{E}[\text{surr}]
 $$
 
+The importance weight allows reusing data sampled from the previous old policy, saving time and computation.
 
-重要性权重可以复用之前旧策略采样的数据，节省时间和算力。
+Additionally, a **KL penalty term** or **value function loss** (if using a critic network) can also be added.
 
-此外，还可以加上一个 **KL 惩罚项** 或 **价值函数损失**（如果使用了 critic 网络）。
+#### 3.6 Value Function (Optional)
 
-#### 3.6 价值函数（可选）
-在大模型 RLHF 中，有时会额外训练一个价值网络（critic）来估计状态价值 $V(s)$，用于计算优势。  
-价值网络通常是**与策略共享部分参数**的另一个输出头，预测每个 token 位置的状态价值。  
-训练时增加价值损失：
+In large model RLHF, an additional value network (critic) is sometimes trained to estimate the state value $V(s)$, used to compute the advantage. The value network is typically another output head **sharing some parameters with the policy**, predicting the state value at each token position. During training, a value loss is added:
+
 $$
 L_{\text{value}} = \mathbb{E}[(V(s_t) - \text{return}_t)^2]
 $$
 
----
+#### 3.7 Typical PPO Hyperparameters in Large Models
 
-#### 3.7 PPO 在大模型中的典型超参数
-
-| 参数 | 常见取值 |
+| Parameter | Common Value |
 |------|----------|
-| 裁剪范围 $\epsilon$ | 0.1 ~ 0.2 |
-| KL 惩罚系数 $\beta$ | 0.01 ~ 0.1 |
-| 更新轮数 (epochs) | 4 ~ 10 |
-| 批次大小 | 64 ~ 256 |
-| 学习率 | 1e-6 ~ 5e-5（通常比 SFT 低） |
-| 优势归一化 | 在批次内对优势进行标准化 |
+| Clip range $\epsilon$ | 0.1 ~ 0.2 |
+| KL penalty coefficient $\beta$ | 0.01 ~ 0.1 |
+| Update epochs | 4 ~ 10 |
+| Batch size | 64 ~ 256 |
+| Learning rate | 1e-6 ~ 5e-5 (usually lower than SFT) |
+| Advantage normalization | Standardize advantages within batch |
 
+## 13.6 DPO Algorithm (Direct Preference Optimization)
 
-## 13.6 DPO算法（Direct Preference Optimization，DPO，直接偏好优化）
+### 13.6.1 Core Idea of the DPO Algorithm
 
-### 13.6.1 DPO算法的核心思想
+The success of the DPO method lies in its elimination of PPO's many complexities while performing well: it removes the **reward model** (originally used to compute the advantage function) in PPO, and **abandons all policy optimization-related mechanisms** (such as the importance ratio). Returning to fundamentals, it performs positive gradient updates on good results and negative gradient updates on bad results.
 
-DPO方法其成功原因在于它**消除了PPO的诸多复杂性且表现良好**：移除了PPO中的**奖励模型**（原本用于计算优势函数），**摒弃了所有策略优化相关机制**（比如重要性比率）。回归基础本质，对优质结果计算对数损失执行正向梯度更新，对劣质结果计算对数损失执行负向梯度更新。
+<img src="./images/13-3-DPO和PPO.png" width="800" alt="13-3-DPO-vs-PPO">
 
-<img src="./images/13-3-DPO和PPO.png" width="800" alt="13-3-DPO和PPO.png">
+**From the above figure, DPO is far less cumbersome and achieves equivalent performance.**
 
-**从上图中可以看出，DPO没有那么繁琐，并且性能相同。**
+**No need to train an additional reward model, no complex RL loop; just embed human preferences directly into a 'comparative' supervised loss, and the language model learns to generate good answers more and bad answers less.** In other words, DPO compresses the original two-stage pipeline of "first train a reward model, then maximize reward with PPO" into a single-stage pipeline of "one maximum likelihood loss," thereby **turning a reinforcement learning problem into a supervised learning problem.**
 
-**不用额外训练一个奖励模型，也不用复杂的强化学习循环；只要把人类偏好直接写进一条‘比较式’监督损失，就能让语言模型学会好答案多生成、差答案少生成。** 换句话说，DPO 把原来“先训练奖励模型, 用 PPO 最大化奖励”的两段式流程，压缩成“一条最大似然损失”的单段式流程，从而把**强化学习问题变成了监督学习问题**。
+No reward network, no advantage, no clip — just one pair $(y_w, y_l)$ to compute the gradient, training just like ordinary fine-tuning.
 
-没有奖励网络，没有 advantage，没有clip只要一对 $(y_w, y_l)$ 就能算梯度，训练时只像普通微调那样。  
+Think of the model as a "student" and the reference model as "their past self." The teacher hands over two essays: a model essay and a negative example. The DPO loss is a single comment: **"You must be more like the model essay than yesterday's you, and simultaneously less like the negative example than yesterday's you; otherwise, you lose points."** The student only compares "today's self vs. yesterday's self" each time, never needing to know an absolute score (reward), yet can continuously improve. No need to train a separate "scorer."
 
-把模型想成“学生”，参考模型想成“原来的自己”。  老师递来两篇作文：范文和反面教材。  
-DPO 损失就是一句评语，“**你要比昨天的你更像范文，同时比昨天的你更不像反面教材，否则就扣分。**” 学生每次只比较“今天的自己 vs 昨天的自己”，根本不用知道绝对分数（奖励），就能持续进步。不用额外训练“打分器”。
+### 13.6.2 The DPO Algorithm
 
-### 13.6.2 DPO算法
+DPO turns "reinforcement learning" into "weighted supervised learning," and only needs one pair of "good/bad" answers to teach the model "be like the good, don't be like the bad." DPO data collection is: using the SFT-trained model as the inference model, the user inputs a prompt, the model infers multiple times, and good answers and bad answers are found.
 
-DPO 把“强化学习”变成了“带权重的监督学习”，而且只需要一对“好/差”答案，就能让模型学会“像好的，别像差的”。DPO数据收集就是基于SFT训练的模型作为推理模型，用户输入prompt，模型多次推理，找到好的答案和不好的答案。
+In RLHF, PPO optimizes model-generated output through a reward model, but requires training a **Value Network**, multiple rounds of policy updates, PPO's gradient clipping and KL regularization — these steps are **computationally expensive and complex to train** for large models. DPO proposes **directly using preference pairs for optimization**, eliminating the need for an RL loop or complex value network training.
 
-在 RLHF 中，PPO 通过奖励模型来优化模型生成的输出，但需要训练价值网络（Value Network）,多轮策略更新,PPO 的梯度剪切与 KL 正则, 这些步骤对大模型来说**计算成本高、训练复杂**。DPO 提出**直接使用偏好对进行优化**，不需要 RL 循环，也不需要复杂的价值网络训练。
+#### Step 1: First Write a "Preference Probability"
 
----
-
-#### Step 1：先写一条“偏好概率”
-
-假设我们已经知道模型的输出背后有个看不见的“奖励” $r(x,y)$。人类说“我喜欢 $y_w$ 胜过 $y_l$ ”，那么在 $Bradley-Terry$ 模型里。
+Assume we already know there is an invisible "reward" $r(x,y)$ behind the model's output. If a human says "I prefer $y_w$ over $y_l$," then in the $Bradley-Terry$ model:
 
 $$
 P(\text{win})=\sigma\bigl(r(x,y_w)-r(x,y_l)\bigr)
 $$
 
-$\sigma$ 是 S 形函数，把差值压到 0~1。
+$\sigma$ is the sigmoid function, compressing the difference to 0~1.
 
----
+#### Step 2: DPO's Optimization Objective
 
-#### Step 2： DPO的优化目标
-
-给定两段文本生成结果 $y_1$ 和 $y_2$ 对于同一个 $prompt (x)$ ，有人工或模型标注偏好.如 $y_1 \succ y_2$。DPO 的目标是让模型生成偏好文本的概率更高，直接优化概率比：
+Given two text generation results $y_1$ and $y_2$ for the same $prompt(x)$, with human or model annotated preferences (e.g., $y_1 \succ y_2$), DPO's goal is to make the model generate the preferred text with higher probability, directly optimizing the probability ratio:
 
 $$
-r(x,y)=\beta\ln\frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + \text{C(常数)}
+r(x,y)=\beta\ln\frac{\pi_\theta(y|x)}{\pi_{\text{ref}}(y|x)} + C(\text{constant})
 $$
 
-$π_θ$ 是我们现在要训练的模型， $π_{ref}$ 是最初的 SFT 模型（也叫参考模型）， $\beta$ 温度系数，默认 0.1~0.5。 
+$\pi_\theta$ is the model we are now training, $\pi_{ref}$ is the initial SFT model (also called the reference model), and $\beta$ is the temperature coefficient, default 0.1~0.5.
 
-$\sigma$ 是 S 形函数，把差值压到 0~1。把这条 $r(x,y)$ 代回 Step 1
+Substitute this $r(x,y)$ back into Step 1:
 
 $$
 P(\text{win})=\sigma\Bigl(\beta\ln\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta\ln\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\Bigr)
 $$
 
----
+#### Step 3: Maximum Likelihood → Minimize Negative Log-Likelihood
 
-#### Step 3：最大似然 到 最小化负对数
-
-我们想让“人类偏好”被模型猜中的概率最大，于是:
+We want to maximize the probability that "human preferences" are guessed correctly by the model, so:
 
 $$
 \mathcal{L}_{\text{DPO}}=-\ln\sigma\Bigl(\beta\ln\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta\ln\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\Bigr)
 $$
 
-这就是 DPO 的**损失**：  
+This is the DPO **loss**: The first half $\ln\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)}$ is called the "relative log probability of the good answer," the second half $\ln\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}$ is called the "relative log probability of the bad answer." The entire expression inside = "how much better the good is than the bad" → compressed to $(0,1)$ by $\sigma$ → taking the negative log gives cross-entropy.
 
-前半截 $\ln\frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)}$ 叫“好答案的相对对数概率”,后半截 $\ln\frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}$ 叫“差答案的相对对数概率”, 整个括号里 = “好比差好多少” 到 被 $\sigma$ 压成 $(0,1)$ 到 取负对数就是交叉熵  
+#### Step 4: Training Process
 
----
+**Data preparation**: Collect prompts and corresponding generated output pairs $(y_1, y_2)$, along with human or small-model annotated preferences $(y_\text{preferred} \succ y_\text{less-preferred})$.
 
-#### Step 4：训练流程
+**Probability calculation**: Feed each output into the large model, compute the generation probability $\pi_\theta(y|x)$, using $log-probability$ accumulation to obtain the sequence probability.
 
+**Loss calculation**: Use the DPO loss function $\mathcal{L}_\text{DPO}$ to directly optimize the large model parameters via backpropagation.
 
-**数据准备**:收集 prompt 和对应的生成输出对 $(y_1, y_2)$ ，还有人类或小模型标注偏好 $(y_\text{preferred} \succ y_\text{less-preferred})$
+**Iterative training**: Batch-compute preference pair loss, update model parameters via gradient — no value network needed, no RL loop required.
 
-**概率计算**:将每个输出输入大模型，计算生成概率 $\pi_\theta(y|x)$ , 可以使用 $log-probability$ 累加得到序列概率
+### 13.6.3 Two Variants of the DPO Algorithm
 
-**计算损失**: 使用 DPO 损失函数 $\mathcal{L}_\text{DPO}$ , 通过反向传播直接优化大模型参数
+#### SimPO: Directly Remove the Reference Model to Save Memory
 
-**迭代训练**: 批量计算偏好对损失, 梯度更新模型参数, 不需要价值网络，也不需要 RL 环节.
+The core idea is: no longer compare with the "old model," but directly make "the probability of the good answer" larger than "the probability of the bad answer," and require the good answer's probability to lead by a **margin**. It makes two simple modifications: one is to normalize the update magnitude by response length (this idea will appear again later), and the other is to remove the reference policy. Although this breaks DPO's mathematical justification based on policy ratios, it more purely embodies the idea of weighting good / downweighting bad.
 
-### 13.6.3 DPO算法的两种变体
-
-
-#### SimPO：直接去掉参考模型省显存
-
-核心思想是不再和“旧模型”比，而是让“好答案的概率”直接大于“差答案的概率”，并且要求好答案概率领先一个**margin**。它做了两处简单修改：一是根据回复长度标准化更新幅度（这个思路后续还会出现），二是移除了参考策略。虽然这破坏了DPO基于策略比值的数学论证，但更纯粹地体现了加权优质/降权劣质的思想。
-
-原始 DPO 公式：
+Original DPO formula:
 
 $$
 \mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{ref}}) = -\mathbb{E}\left[\log\sigma\left(\beta\log\frac{\pi_\theta(y_w \mid x)}{\pi_{\text{ref}}(y_w \mid x)} - \beta\log\frac{\pi_\theta(y_l \mid x)}{\pi_{\text{ref}}(y_l \mid x)}\right)\right]
 $$
 
-SimPO 公式：
+SimPO formula:
 
 $$
 \mathcal{L}_{\text{SimPO}}(\pi_\theta) = -\mathbb{E}\left[\log\sigma\left(\frac{\beta}{|y_w|}\log\pi_\theta(y_w \mid x) - \frac{\beta}{|y_l|}\log\pi_\theta(y_l \mid x) - \gamma\right)\right]
 $$
 
-$\beta$ 是温度系数，用于控制概率比的敏感度， $\gamma$ 是一个超参数，用于在 SimPO 中引入一个固定的 margin，确保“好”的回答的概率比“差”的回答的概率高至少 $\gamma$   
-$|y_w|$ 和 $|y_l|$ 分别表示“好”的回答和“差”的回答的长度（以 token 为单位）。
+$\beta$ is the temperature coefficient controlling sensitivity of the probability ratio; $\gamma$ is a hyperparameter introducing a fixed margin in SimPO, ensuring the "good" answer's probability is at least $\gamma$ higher than the "bad" answer's. $|y_w|$ and $|y_l|$ respectively denote the length (in tokens) of the "good" answer and the "bad" answer.
 
----
+#### Length-Normalized DPO: Prevent Models from "Cheating with Long Responses"
 
-**长度归一化 DPO**，防止模型靠“写长文”作弊
+The core idea is to replace raw probability with **average per-token probability** before comparing — long responses no longer inevitably have an advantage.
 
-核心思想是把概率换成**平均每 token 的概率**，再比大小；长文不再天然占优。
-
-公式：
+Formula:
 
 $$
 \max_{\pi_\theta}\mathbb{E}_{y_c,y_r,y_r\sim\mathcal{D}}\left[\log\sigma\left(\frac{\beta}{|y_c|}\log\frac{\pi_\theta(y_c \mid x)}{\pi_{\text{ref}}(y_c \mid x)} - \frac{\beta}{|y_r|}\log\frac{\pi_\theta(y_r \mid x)}{\pi_{\text{ref}}(y_r \mid x)}\right)\right]
 $$
 
-分母 $|y_c|$ 和 $|y_r|$  是答案长度（token 数）  
+Denominators $|y_c|$ and $|y_r|$ are the answer lengths (in tokens). In **length-normalized DPO**, by dividing the log probability by the answer length, we can **reduce the model's tendency to generate longer answers**, because **longer answers, even with only slight advantages in probability**, may receive higher unnormalized log probabilities purely due to their length.
 
-在**长度归一化的 DPO** 中，通过将对数概率除以回答的长度，可以**减少模型倾向于生成更长回答的倾向**，因为**较长的回答即使在概率上只有轻微的优势**，也可能因为长度而获得更高的未归一化的对数概率。
+### 13.6.3 RL Considerations
 
-### 13.6.3 强化学习的注意事项 
+RL **findings are often highly dependent on specific environments.** Depending on the runtime environment, base model, and post-training preference data, conclusions can vary significantly. For example, the AI2 team, when comparing DPO and PPO, once found PPO superior due to its on-policy nature, and precisely demonstrated the gap from DPO to PPO. But in subsequent Tulu3 research, they found that with more sophisticated SFT methods, both PPO and DPO gains disappeared, and only standardized DPO maintained the advantage — conclusions completely different. These two studies have many differences, but it's not a matter of who's right and who's wrong. The important thing is that we should not over-generalize conclusions based on a single paper. This caution also applies to the PPO and GRPO I'll discuss later — **never treat any single experimental result as dogma.**
 
-强化学习的**发现往往高度依赖具体环境**。根据运行环境、基础模型和训练后偏好数据的不同，结论可能大相径庭。例如AI2团队在比较DPO与PPO时，曾发现PPO因在线策略特性更优，并精确展示了DPO到PPO的差距。但在后续Tulu3研究中，他们发现如果采用更精巧的SFT方法，PPO和DPO的增益都会消失，唯有标准化DPO能保持优势——结论截然不同。这两项研究存在诸多差异，但并非孰对孰错的问题。重要的是我们不应基于单篇论文过度推广结论。这个注意事项同样适用于后续我将讨论的PPO和GRPO——切,**勿将任何单一实验结果视为金科玉律**。
+<img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/zh/chapter13/images/13-4-过度优化.png" width="800" alt="13-4-over-optimization">
 
-<img src="https://raw.githubusercontent.com/datawhalechina/diy-llm/main/docs/chapter13/images/13-4-过度优化.png" width="800" alt="13-4-过度优化.png">
+**The over-optimization problem.** This is essentially overfitting, but the term is important because it inherently reveals a phenomenon: when continuously optimizing the policy — imagine the horizontal axis representing the degree of RL implementation — initially the reward value keeps rising, but eventually the reward model fitted on human preferences will deviate from actual human preferences. The more you optimize, the greater the deviation, ultimately falling into a situation that **looks like optimization but yields no real reward improvement.**
 
-**过度优化问题**。这其实是就是过度拟合，但这个术语很重要，因为它本质上揭示了一个现象：当持续优化策略时，想象横轴代表强化学习的实施程度，初始阶段奖励值会持续上升，但最终基于人类偏好拟合的奖励模型会与实际人类偏好产生偏离。越是优化偏离程度越大，最终陷入**看似优化实则奖励并无提升的境地**。
-
-这种现象在RLHF中几乎无处不在，是个非常严重的问题。过度优化现象的产生根源在于人类偏好的噪声特性及其复杂性。有人曾进行过一项研究：分别对含噪声的AI反馈、无噪声的AI反馈以及人类反馈实施RLHF。结果清晰表明，人类反馈和含噪声AI反馈均出现明显过度优化现象，而洁净的无噪声AI反馈则未见此状况。因此在实际后训练过程中，您应该预期会看到类似左侧图表所示的曲线——当模型在代理奖励指标上表现愈发出色时，其人类偏好胜率未必会同步提升。
+This phenomenon is almost ubiquitous in RLHF and is a very serious problem. The root cause of over-optimization lies in the noisy nature and complexity of human preferences. Someone once conducted a study: implementing RLHF on noisy AI feedback, noise-free AI feedback, and human feedback respectively. The results clearly showed that both human feedback and noisy AI feedback produced significant over-optimization, while clean, noise-free AI feedback did not show this condition. Therefore, in the actual post-training process, you should expect to see curves similar to those in the left chart — when the model performs increasingly well on proxy reward metrics, its human preference win rate may not necessarily improve in tandem.
 
