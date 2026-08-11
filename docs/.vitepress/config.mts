@@ -24,12 +24,12 @@ const enNav = [
       { text: 'Scaling Laws', link: '/en/chapter9/chapter9_Scaling_Laws' },
       { text: 'Inference', link: '/en/chapter10/chapter10_Inference' },
       { text: 'RLVR', link: '/en/chapter14/chapter14_RLVR' },
+      { text: 'Multimodal Models', link: '/en/chapter15/chapter15_Multimodal_Models' },
     ],
   },
   {
     text: 'Extra Chapters',
     items: [
-      { text: 'Chapter 15 Multimodal Models', link: '/en/chapter15/chapter15_Multimodal_Models' },
       { text: 'Chapter 16 Extended Content', items: [
         { text: '1. What is LLM Reasoning？', link: '/en/chapter16/chapter16_What_is_LLM_Reasoning' },
         { text: '2. LLM Future - LeCun', link: '/en/chapter16/chapter16_LLM_Future_LeCun' },
@@ -92,12 +92,12 @@ const zhNav = [
       { text: 'Scaling Laws', link: '/chapter9/chapter9_Scaling_Laws' },
       { text: '推理', link: '/chapter10/推理' },
       { text: 'RLVR', link: '/chapter14/chapter14_可验证奖励的强化学习' },
+      { text: '多模态模型', link: '/chapter15/chapter15_多模态模型' },
     ],
   },
   {
     text: '扩展内容',
     items: [
-      { text: '第15章 多模态模型', link: '/chapter15/chapter15_多模态模型' },
       { text: '第16章 扩展内容', items: [
         { text: '1. 什么是LLM推理？', link: '/chapter16/chapter16_什么是LLM推理' },
         { text: '2. LLM 的未来 - Lecun', link: '/chapter16/chapter16_LLM的未来LeCun' },
