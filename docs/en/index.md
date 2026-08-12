@@ -135,8 +135,7 @@ We retain the original technical depth while adding Chinese explanations, detail
 
 - Thanks to [@aimetrics](https://github.com/aimetrics) for adding MPS support for MacBooks in HW1
 - Thanks to [@FuTseYi](https://github.com/FuTseYi) (Datawhale) for website migration, deployment, and refactoring
-- Thanks to [@jiangyinhe](https://github.com/jiangyinhe) for contributing to Ch16 "LLM Future — LeCun"
-- Ch15 "Multimodal Models" based on Stanford CS336 (Spring 2026) Lecture 17
+- Thanks to [@jiangyinhe](https://github.com/jiangyinhe) for contributing to Ch16 "LLM Future — LeCun"; and for translating the first chapter and preface into English based on the Chinese version.
 
 ## License
 

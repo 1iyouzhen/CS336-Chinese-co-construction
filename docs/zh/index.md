@@ -178,8 +178,8 @@ CS336-Chinese-co-construction/
 
 - 感谢 [@aimetrics](https://github.com/aimetrics) 在[作业1 的 train.py](https://github.com/datawhalechina/diy-llm/blob/main/coursework/assignment1-basics/train.py) 中，增加了在 Macbook 设备上的 MPS 支持
 - 感谢[@FuTseYi](https://github.com/FuTseYi)(Datawhale成员)对网站迁移、部署和重构的支持
-- 感谢[@jiangyinhe](https://github.com/jiangyinhe)参与第 16 章扩展内容《LLM 的未来 - Lecun》的整理
-- 第 15 章《多模态模型》基于 Stanford CS336 (Spring 2026) Lecture 17 整理，感谢课程团队提供的优质内容
+- 感谢[@jiangyinhe](https://github.com/jiangyinhe)参与第 16 章扩展内容《LLM 的未来 - Lecun》的整理；基于中文版内容实现了第一章、前言的英文版翻译；
+
 
 *注：我们感谢每一位为项目做出贡献的开发者！*
 
