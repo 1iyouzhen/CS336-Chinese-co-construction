@@ -144,7 +144,6 @@ export default defineConfig({
   rewrites: {
     'zh/:rest*': ':rest*',
   },
-  srcDir: 'zh',
   head: [
     ['link', { rel: 'icon', href: '/diy-llm/datawhale.png' }],
     ['meta', { name: 'theme-color', content: '#2563eb' }],
@@ -170,6 +169,7 @@ export default defineConfig({
     root: {
       label: '中文',
       lang: 'zh-CN',
+      srcDir: 'zh',
       themeConfig: {
         nav: zhNav,
         sidebar: zhSidebar,
