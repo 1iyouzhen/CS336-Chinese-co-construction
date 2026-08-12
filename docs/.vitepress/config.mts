@@ -144,6 +144,7 @@ export default defineConfig({
   rewrites: {
     'zh/:rest*': ':rest*',
   },
+  srcDir: 'zh',
   head: [
     ['link', { rel: 'icon', href: '/diy-llm/datawhale.png' }],
     ['meta', { name: 'theme-color', content: '#2563eb' }],
