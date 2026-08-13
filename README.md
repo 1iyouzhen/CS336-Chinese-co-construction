@@ -230,9 +230,9 @@ diy-llm/
 
 <a href="https://www.star-history.com/?repos=datawhalechina%2Fdiy-llm&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&theme=dark&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&theme=dark&legend=top-left&sealed_token=ZaKMAVlJ7ht4jbVMmrIgbWlsmeGT0P-zVEivYCbfcgbt7tsA67sQo1rwoHTT5E5ajegRha9nPoc_IKk-fkvfKfddLlLONIBjPzt4QnXtwox4VKQr78nKyugDQvaziK1vjbWMPuzwwJQssk6wgPJyD2evUEO7R72ZdpHhMMABx5ZAX1uQJBG_DdDaheA1" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=ZaKMAVlJ7ht4jbVMmrIgbWlsmeGT0P-zVEivYCbfcgbt7tsA67sQo1rwoHTT5E5ajegRha9nPoc_IKk-fkvfKfddLlLONIBjPzt4QnXtwox4VKQr78nKyugDQvaziK1vjbWMPuzwwJQssk6wgPJyD2evUEO7R72ZdpHhMMABx5ZAX1uQJBG_DdDaheA1" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=ZaKMAVlJ7ht4jbVMmrIgbWlsmeGT0P-zVEivYCbfcgbt7tsA67sQo1rwoHTT5E5ajegRha9nPoc_IKk-fkvfKfddLlLONIBjPzt4QnXtwox4VKQr78nKyugDQvaziK1vjbWMPuzwwJQssk6wgPJyD2evUEO7R72ZdpHhMMABx5ZAX1uQJBG_DdDaheA1" />
  </picture>
 </a>
 ---
