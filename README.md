@@ -228,8 +228,13 @@ diy-llm/
 
 如果这个项目对你有帮助，欢迎给个 Star ⭐️！
 
-[![Star History Chart](https://api.star-history.com/svg?repos=datawhalechina/diy-llm&type=Date)](https://star-history.com/#datawhalechina/diy-llm&Date)
-
+<a href="https://www.star-history.com/?repos=datawhalechina%2Fdiy-llm&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&theme=dark&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=datawhalechina/diy-llm&type=date&legend=top-left&sealed_token=lWybTVlahKdnZ1rFLK2Cxk54FQZmab77AkzGb-RRN3gNAvCugwqvtB_FnWmmEz_X5g8-phV2fL2GMQ237mQeg3-roHYZeXwu0WboCZDTnlzUFVeXvv7geg" />
+ </picture>
+</a>
 ---
 
 <div align="center">
