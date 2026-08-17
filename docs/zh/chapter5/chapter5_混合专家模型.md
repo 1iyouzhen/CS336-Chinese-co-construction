@@ -92,7 +92,7 @@ $$S_t=(\mathbb I - \beta k_t k_{t}^T)Diag(\alpha_{t})S_{t-1}+\beta k_t v_{t}^T$$
 
 
 <div align="center">
-<img width="855" height="372" alt="image" src="https://github.com/user-attachments/assets/6142dada-4d8f-48c8-bd2c-363197704722" />
+<img width="915" height="126" alt="KDA的公式原理可视化" src="https://github.com/user-attachments/assets/5ff8a1bf-5fdf-4a0c-95db-f93a1d676271" />
    <p>KDA的公式原理可视化</p>
  </div>
 
