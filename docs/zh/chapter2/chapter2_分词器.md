@@ -6,7 +6,7 @@
 
 模型的工作方式可以类比为一条“自动化快递处理流水线”，其中的tokenizer更像是一个**带有经验规则的智能分拣与打包中心**。我们可以想象这样一个场景——
 
-&emsp;&emsp;我们需要寄一个混合物品的“快递”，而是一堆经常重复出现的组合（就像语言中反复出现的词、词根、子词），但“快递公司”的运输系统（大语言模型）有一个限制——不理解具体物品，只认识ID编号，而且更倾向于处理出现的标准物件（token），于是，在进入运输系统之前，会有一个更“聪明”的分拣中心（tokenizer）把这些**重复组合拆解并转换成系统唯一识别的ID序列**：
+&emsp;&emsp;我们需要寄一个混合物品的“快递”，即是一堆经常重复出现的组合（就像语言中反复出现的词、词根、子词），但“快递公司”的运输系统（大语言模型）有一个限制——不理解具体物品，只认识 ID编号 ，而且更倾向于处理出现的标准物件（token），于是，在进入运输系统之前，会有一个更“聪明”的分拣中心（tokenizer）把这些**重复组合拆解并转换成系统唯一识别的ID序列**：
 
 - **拆分物品（文本切分）：** 不是随便乱拆，而是尝试找到“经常一起出现的组合”，比如“火锅”不会拆成“火 + 锅”，因为它作为整体更常见；
 - **复用已有包装（子词建模）：** 如果某个大件不常见，就拆成常见的小件组合，比如“超导材料”可能拆成“超导 + 材料”；
@@ -124,14 +124,14 @@
      
 ```python
       
-   # 基于空格和标点切分的实现示例
-   import re
+# 基于空格和标点切分的实现示例
+import re
          
-   def part(text):
-      # 将标点符号单独拆开，并按照空格进行分割
-      text = re.sub(r'([.,!?;:()"\'\[\]{}])', r' \1 ', text)
-      tokens = text.split()
-      return tokens
+def part(text):
+   # 将标点符号单独拆开，并按照空格进行分割
+   text = re.sub(r'([.,!?;:()"\'\[\]{}])', r' \1 ', text)
+   tokens = text.split()
+   return tokens
 
 # 测试
 if __name__ == "__main__":         
@@ -162,19 +162,19 @@ if __name__ == "__main__":
 
 ```python
      
-      def tokenize_byte_level(text):
-          tokens = []
-          for ch in text:
-              # 字符对应的UTF-8字节序列
-              utf8_bytes = ch.encode("utf-8")
-              hex_bytes = [f"{b:02X}" for b in utf8_bytes]
-              print(f"{ch} 转化为UTF-8字节序列：{hex_bytes}")
-              tokens.extend(hex_bytes)
-          return tokens
+def tokenize_byte_level(text):
+   tokens = []
+   for ch in text:
+   # 字符对应的UTF-8字节序列
+      utf8_bytes = ch.encode("utf-8")
+      hex_bytes = [f"{b:02X}" for b in utf8_bytes]
+      print(f"{ch} 转化为UTF-8字节序列：{hex_bytes}")
+      tokens.extend(hex_bytes)
+   return tokens
 
-   if __name__ == "__main__":
-      s = "All for learners！"
-      print(tokenize_byte_level(s))
+if __name__ == "__main__":
+   s = "All for learners！"
+   print(tokenize_byte_level(s))
 
 ```
 
