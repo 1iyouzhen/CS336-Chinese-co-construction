@@ -155,8 +155,8 @@ CS336-Chinese-co-construction/
 <div align="center">
   <table>
     <tr>
-      <td align="center"><img src="/读者交流群1.jpg" alt="读者交流群1二维码" width="280"><br>读者交流群1</td>
-      <td align="center"><img src="/读者交流群2.jpg" alt="读者交流群2二维码" width="280"><br>读者交流群2</td>
+      <td align="center"><img src="/读者交流群1.png" alt="读者交流群1二维码" width="280"><br>读者交流群1</td>
+      <td align="center"><img src="/读者交流群2.png" alt="读者交流群2二维码" width="280"><br>读者交流群2</td>
     </tr>
   </table>
 </div>

@@ -116,8 +116,8 @@ Join the Diy-LLM reader community to discuss the course, ask questions, and lear
 <div align="center">
   <table>
     <tr>
-      <td align="center"><img src="/读者交流群1.jpg" alt="Reader community group 1 QR code" width="280"><br>Group 1</td>
-      <td align="center"><img src="/读者交流群2.jpg" alt="Reader community group 2 QR code" width="280"><br>Group 2</td>
+      <td align="center"><img src="/读者交流群1.png" alt="Reader community group 1 QR code" width="280"><br>Group 1</td>
+      <td align="center"><img src="/读者交流群2.png" alt="Reader community group 2 QR code" width="280"><br>Group 2</td>
     </tr>
   </table>
 </div>
