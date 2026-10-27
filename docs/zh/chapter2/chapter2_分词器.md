@@ -25,7 +25,7 @@
 > 一句话总结——**LLM负责“理解和生成”，而tokenizer负责“把语言变成模型能理解、可复用的结构”。**
 
 <div align="center">
-  <img src="images/2-1-分词器与LLM.png" alt="分词器与LLM" width="800">
+  <img src="./images/2-1-分词器与LLM.png" alt="分词器与LLM" width="800">
   <p><em>图 1. 分词器与LLM</em></p>
 </div>
 
@@ -37,9 +37,9 @@
 
 在进入具体分析之前，我们先明确本节的关注重点。本节将围绕分词器这一看似简单、但对LLM行为有深远影响的模块展开，主要包括：
 
-1. [理解4个分词算法（如BPE、WordPiece...）的基本原理与训练流程](#2-训练分词器)
-2. [分析基于不同分词算法实现tokenizer的区别，以及BPE流行的原因](#3-常用的分词器)
-3. [结合实际工具（如DeepSeek的相关实现）动手使用分词器](#4-分析deepseek的分词器)
+- 理解4个分词算法（如BPE、WordPiece...）的基本原理与训练流程。
+- 分析基于不同分词算法实现tokenizer的区别，以及BPE流行的原因。
+- 结合实际工具（如DeepSeek的相关实现）动手使用分词器。
 
 相比“如何使用”，本节更关注一个更根本的问题：
 
@@ -51,7 +51,7 @@
 - 不同分词策略（不同的切分方式）如何影响模型的能力，并进一步影响语义建模与组合能力？
 - 分词器在实际工程中如何落地？
 
-*在学习开始之前，我们可以先来感受一下[分词器](https://tiktokenizer.vercel.app/?model=gpt-4-1106-preview)。接着我们带着这几个问题，开始进入分词器的学习！*
+*在学习开始之前，我们可以先来看看一下[分词器](https://tiktokenizer.vercel.app/?model=gpt-4-1106-preview)。接着我们带着这几个问题，开始进入分词器的学习！*
 
 ## 2 训练分词器
 
@@ -62,7 +62,7 @@
 ```
 
 <div align="center">
-  <img src="images/2-2-分词器训练流程.png" alt="分词器训练流程" width="800">
+  <img src="./images/2-2-分词器训练流程.png" alt="分词器训练流程" width="800">
   <p><em>图 2. 分词器训练流程</em></p>
 </div>
 
@@ -201,7 +201,7 @@ if __name__ == "__main__":
 *Tips：词汇表外是当LLM模型在处理新的、实际应用的文本时，如果遇到一个词汇表中没有的Token，那么这个Token就被视为一个OOV。*
 
 <div align="center">
-  <img src="images/2-3-词元序列长度与注意力计算.png" alt="token序列长度对注意力机制的影响" width="800">
+  <img src="./images/2-3-词元序列长度与注意力计算.png" alt="token序列长度对注意力机制的影响" width="800">
   <p><em>图 3. token序列长度对注意力机制的影响</em></p>
 </div>
 
@@ -317,7 +317,7 @@ $$
 **Step1** &emsp;导出核心产物，不管是使用哪一种分词算法，训练完成后都需要导出至少两个关键文件：
 
 <div align="center">
-  <img src="images/2-4-词表与合并规则文件.png" alt="vocab、merges文件示例" width="800">
+  <img src="./images/2-4-词表与合并规则文件.png" alt="vocab、merges文件示例" width="800">
   <p><em>图 4. vocab、merges文件示例</em></p>
 </div>
 
@@ -545,7 +545,7 @@ print(f"IDs:{encoded_ids}")
 ### 4.3 快速体验DeepSeek分词器
 
 <div align="center">
-  <img src="images/2-5-DeepSeek分词器可视化.png" alt="DeepSeek分词器" width="800">
+  <img src="./images/2-5-DeepSeek分词器可视化.png" alt="DeepSeek分词器" width="800">
   <p><em>图 5. DeepSeek分词器</em></p>
 </div>
 
